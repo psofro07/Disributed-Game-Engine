@@ -1,0 +1,64 @@
+version: '3.7'
+
+services:
+
+  mysqldb:
+    container_name: sql-auth
+    image: mysql:latest
+    restart: always
+    env_file: ./.env
+    environment:
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_USER: $MYSQL_USER
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+      MYSQL_DATABASE: $MYSQL_DATABASE
+    networks:
+      - net1
+    volumes: 
+      - db-config:/etc/mysql
+      - db-data:/var/lib/mysql
+      - ./db/backup/files/:/data_backup/data
+  
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5.0.1
+    container_name: phpmyadmin-app
+    depends_on:
+      - mysqldb
+    networks:
+      - net1
+    ports:
+      - "3002:80"
+    env_file: ./.env
+    environment:
+      PMA_HOST: sql-auth
+      PMA_PORT: 3306
+    #volumes:
+    #  - /sessions
+
+  authentication:
+    build:
+      context: ./Authentication_service
+      dockerfile: Dockerfile
+    image: node-mysql-app
+    env_file: ./.env
+    environment:
+      MYSQL_HOST: sql-auth
+      MYSQL_USER: $MYSQL_USER
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+      MYSQL_DATABASE: $MYSQL_DATABASE
+    depends_on:
+      - mysqldb
+    ports:
+      - 4000:4000
+    networks:
+      - net1
+    stdin_open: true
+    tty: true
+
+
+networks:
+  net1:
+
+volumes: 
+  db-config:
+  db-data:
