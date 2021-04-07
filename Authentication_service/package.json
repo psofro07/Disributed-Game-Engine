@@ -26,6 +26,10 @@
     "jshint": "^2.12.0",
     "jsonwebtoken": "^8.5.1",
     "mysql2": "^2.2.5",
+<<<<<<< HEAD
+=======
+    "nodemon": "^2.0.7",
+>>>>>>> d3b2714932f8dd8bd2be6f5bd5be9a6846a4ad3d
     "sequelize": "^6.6.2"
   }
 }

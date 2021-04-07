@@ -23,7 +23,11 @@ sequelize
     .sync()
     .then( result => {
         app.listen(port, () => {
+<<<<<<< HEAD
             console.log('Server up and pipes at http://localhost:4000')
+=======
+            console.log('Server up and running at http://localhost:4000')
+>>>>>>> d3b2714932f8dd8bd2be6f5bd5be9a6846a4ad3d
         })
     })
     .then(result => {

@@ -37,12 +37,18 @@ services:
 
   authentication:
     build:
+<<<<<<< HEAD
       context: .
       dockerfile: ./Authentication_service/Dockerfile
     #command: nodemon -L --inspect=0.0.0.0:4000
     volumes:
       - ./Authentication_service:/usr/src/app
     restart: always
+=======
+      context: ./Authentication_service
+      dockerfile: Dockerfile
+    image: node-mysql-app
+>>>>>>> d3b2714932f8dd8bd2be6f5bd5be9a6846a4ad3d
     env_file: ./.env
     environment:
       MYSQL_HOST: sql-auth
@@ -55,6 +61,11 @@ services:
       - 4000:4000
     networks:
       - net1
+<<<<<<< HEAD
+=======
+    stdin_open: true
+    tty: true
+>>>>>>> d3b2714932f8dd8bd2be6f5bd5be9a6846a4ad3d
 
 
 networks:
