@@ -11,16 +11,25 @@ const User = sequelize.define('user', {
     },
     username: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
+        required: true
     },
     email: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
+        required: true
     },
     password: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
+        required: true
+    },
+    role: {
+        type: Sequelize.DataTypes.ENUM('Player', 'Official', 'Admin'),
+        defaultValue: 'Player',
+        allowNull: false,
+        required: true
     }
-});
+})
 
 module.exports = User;
