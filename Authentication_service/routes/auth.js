@@ -4,7 +4,6 @@ const router = express.Router();
 const User = require('../models/user');
 const authController = require('../controllers/auth');
 const {body} = require('express-validator');
-const tokenValidation = require('../middlewares/tokenValidation');
 
 router.post(
     '/register', 
@@ -28,12 +27,10 @@ router.post(
             .isLength({min: 4})
     ],
     authController.postRegister
-);
+)
 
 router.post('/login', authController.postLogin);
 
-router.get('/home', tokenValidation, (req, res, next) => {
-    res.json({message: 'You in'})
-})
+router.get('/tokenValidation', authController.tokenValidation);
 
 module.exports = router;

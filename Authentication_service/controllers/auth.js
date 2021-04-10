@@ -45,7 +45,7 @@ exports.postLogin = (req, res, next) => {
             if (!user) {
                 const error = new Error('A user with this username could not be found.');
                 error.statusCode = 401;
-                return res.status(error.statusCode).json({ error: error.message});
+                throw res.status(error.statusCode).json({ error: error.message});
             }
             loadedUser = user;
             return bcrypt.compare(password, user.password);
@@ -54,10 +54,10 @@ exports.postLogin = (req, res, next) => {
             if (!isEqual) {
                 const error = new Error('Wrong password!');
                 error.statusCode = 401;
-                return res.status(error.statusCode).json({ error: error.message});
+                throw res.status(error.statusCode).json({ error: error.message});
             }
             const token = jwt.sign({email: loadedUser.email, username: loadedUser.username}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
-            res.status(200).json({ token: token, username: loadedUser.username });
+            return res.status(200).json({ token: token, username: loadedUser.username });
         })
         .catch(err => {
             if (!err.statusCode) {
@@ -65,4 +65,34 @@ exports.postLogin = (req, res, next) => {
             }
             next(err);
         });
+}
+
+exports.tokenValidation = (req, res, next) => {
+    const authHeader = req.get('Authorization');
+    if (!authHeader) {
+        const error = new Error('Not authenticated.');
+        error.statusCode = 401;
+        return res.status(error.statusCode).json({ error: error.message});
+    }
+
+    //token is sent as 'Bearer token'
+    const token = authHeader.split(' ')[1];
+
+    let decodedToken;
+    try {
+        decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    } catch (err) {
+        const error = new Error('Invalid token.');
+        error.statusCode = 500;
+        return res.status(error.statusCode).json({ error: error.message});
+    }
+
+    if (!decodedToken) {
+        const error = new Error('Not authenticated.');
+        error.statusCode = 401;
+        return res.status(error.statusCode).json({ error: error.message});
+    }
+
+    res.json({status: "success"});
+    next();
 }
