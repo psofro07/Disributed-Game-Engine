@@ -37,7 +37,31 @@
   <!-------------->
   <script> 
     
-    
+    $(document).ready(function(){
+      $('#form-btn').click(function(e){
+        e.preventDefault();
+        var formData = $('#register-form').serializeArray();
+        
+        formData = {"email": formData[0].value, "username": formData[1].value, "password": formData[2].value};
+        
+        $.ajax({
+          url: "/register/auth", 
+          method: "POST",
+          data: formData,
+          success: function(data){ 
+            if (data.status === 'Success') {
+              $('#example').html('User created successfully!');
+              
+            }
+            else {
+              $('#example').html(data);
+            }
+            
+          }
+        });
+        
+      });
+    });
 
   </script>
 

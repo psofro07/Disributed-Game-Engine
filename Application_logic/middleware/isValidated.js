@@ -19,6 +19,7 @@ module.exports = (req, res, next) => {
     })
     .catch(function (error) {
         console.log(error.response.data.error);
-        res.redirect('/login');
+
+        res.status(error.response.data.status).redirect('/login');
     });
 }

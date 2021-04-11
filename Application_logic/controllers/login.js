@@ -20,12 +20,14 @@ exports.postLogin = (req, res, next) => {
   axios(config)
   .then(function (response) {
     console.log(response.data);
+    
     const token = response.data.token;
-    res.cookie('token', token, {maxAge: 1000000, httpOnly:true}).json({status: "Success", redirect: '/home'});
+    res.cookie('token', token, {maxAge: 10000, httpOnly:true}).json({status: "Success", redirect: '/home'});
   })
   .catch(function (error) {
     console.log(error.response.data.error);
-    res.send(error.response.data.error)
+
+    res.status(error.response.status).send(error.response.data.error);
   });
 }
 
