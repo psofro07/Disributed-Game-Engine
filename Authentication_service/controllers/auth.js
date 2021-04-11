@@ -9,7 +9,7 @@ exports.postRegister = (req, res, next) => {
         const error = new Error('Validation failed.');
         error.statusCode = 422;
         error.data = errors.array();
-        return res.status(error.statusCode).json(error.data);
+        throw res.status(error.statusCode).json(error.data[0]);
     }
 
     const email = req.body.email;
@@ -72,7 +72,7 @@ exports.tokenValidation = (req, res, next) => {
     if (!authHeader) {
         const error = new Error('Not authenticated.');
         error.statusCode = 401;
-        return res.status(error.statusCode).json({ error: error.message});
+        throw res.status(error.statusCode).json({ error: error.message});
     }
 
     //token is sent as 'Bearer token'
@@ -84,13 +84,13 @@ exports.tokenValidation = (req, res, next) => {
     } catch (err) {
         const error = new Error('Invalid token.');
         error.statusCode = 500;
-        return res.status(error.statusCode).json({ error: error.message});
+        throw res.status(error.statusCode).json({ error: error.message});
     }
 
     if (!decodedToken) {
         const error = new Error('Not authenticated.');
         error.statusCode = 401;
-        return res.status(error.statusCode).json({ error: error.message});
+        throw res.status(error.statusCode).json({ error: error.message});
     }
 
     res.json({status: "success"});
