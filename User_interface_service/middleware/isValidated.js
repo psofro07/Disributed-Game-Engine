@@ -6,7 +6,7 @@ module.exports = (req, res, next) => {
 
     var config = {
     method: 'get',
-    url: 'http://localhost:4000/api/user/tokenValidation',
+    url: 'http://authentication:4000/api/user/tokenValidation',
     headers: { 
         'Authorization': 'Bearer '+token
     }

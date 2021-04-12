@@ -56,6 +56,18 @@ services:
     networks:
       - net1
 
+  user_interface:
+    build:
+      context: .
+      dockerfile: ./User_interface_service/Dockerfile
+    volumes:
+      - ./User_interface_service:/usr/src/app
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - net1
+
 
 networks:
   net1:

@@ -12,7 +12,7 @@ exports.postRegister = (req, res, next) => {
 
     var config = {
         method: 'post',
-        url: 'http://localhost:4000/api/user/register',
+        url: 'http://authentication:4000/api/user/register',
         headers: { 
             'Content-Type': 'application/json'
         },

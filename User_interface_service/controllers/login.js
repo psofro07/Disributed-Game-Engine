@@ -10,7 +10,7 @@ exports.postLogin = (req, res, next) => {
 
   var config = {
     method: 'post',
-    url: 'http://localhost:4000/api/user/login',
+    url: 'http://authentication:4000/api/user/login',
     headers: { 
       'Content-Type': 'application/json'
     },
@@ -27,7 +27,7 @@ exports.postLogin = (req, res, next) => {
   .catch(function (error) {
     console.log(error.response.data.error);
 
-    res.status(error.response.status).send(error.response.data.error);
+    res.send(error.response.data.error);
   });
 }
 
