@@ -1,9 +1,10 @@
 
 
 exports.getHome = (req, res, next) => {
+    const username = req.session.username;
+    const email = req.session.email;
+    const role = req.session.role;
 
-    // let email = req.body.userEmail;
-    // let psw = req.body.userPass;
-    res.render('home', { email: 'email', psw: 'psw'});
+    res.render('home', { email: email, username: username, role: role});
     
 }

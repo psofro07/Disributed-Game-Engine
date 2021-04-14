@@ -22,12 +22,19 @@ exports.postLogin = (req, res, next) => {
     console.log(response.data);
     
     const token = response.data.token;
-    res.cookie('token', token, {maxAge: 10000, httpOnly:true}).json({status: "Success", redirect: '/home'});
+    const username = response.data.username;
+    const email = response.data.email;
+    const role = response.data.role;
+
+    req.session.username = username;
+    req.session.email = email;
+    req.session.role = role;
+    res.cookie('token', token, {maxAge: 100000, httpOnly:true}).json({status: "Success", redirect: '/home'});
   })
   .catch(function (error) {
-    console.log(error.response.data.error);
+    console.log(error.response.data.message);
 
-    res.send(error.response.data.error);
+    res.send(error.response.data.message);
   });
 }
 

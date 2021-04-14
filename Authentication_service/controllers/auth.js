@@ -9,7 +9,7 @@ exports.postRegister = (req, res, next) => {
         const error = new Error('Validation failed.');
         error.statusCode = 422;
         error.data = errors.array();
-        throw res.status(error.statusCode).json(error.data[0]);
+        throw error;
     }
 
     const email = req.body.email;
@@ -45,7 +45,7 @@ exports.postLogin = (req, res, next) => {
             if (!user) {
                 const error = new Error('A user with this username could not be found.');
                 error.statusCode = 401;
-                throw res.status(error.statusCode).json({ error: error.message});
+                throw error;
             }
             loadedUser = user;
             return bcrypt.compare(password, user.password);
@@ -54,10 +54,10 @@ exports.postLogin = (req, res, next) => {
             if (!isEqual) {
                 const error = new Error('Wrong password!');
                 error.statusCode = 401;
-                throw res.status(error.statusCode).json({ error: error.message});
+                throw error;
             }
             const token = jwt.sign({email: loadedUser.email, username: loadedUser.username}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
-            return res.status(200).json({ token: token, username: loadedUser.username });
+            res.status(200).json({ token: token, username: loadedUser.username, email: loadedUser.email, role: loadedUser.role });
         })
         .catch(err => {
             if (!err.statusCode) {
@@ -72,7 +72,7 @@ exports.tokenValidation = (req, res, next) => {
     if (!authHeader) {
         const error = new Error('Not authenticated.');
         error.statusCode = 401;
-        throw res.status(error.statusCode).json({ error: error.message});
+        throw error;
     }
 
     //token is sent as 'Bearer token'
@@ -82,15 +82,14 @@ exports.tokenValidation = (req, res, next) => {
     try {
         decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     } catch (err) {
-        const error = new Error('Invalid token.');
-        error.statusCode = 500;
-        throw res.status(error.statusCode).json({ error: error.message});
+        err.statusCode = 500;
+        throw err;
     }
 
     if (!decodedToken) {
         const error = new Error('Not authenticated.');
         error.statusCode = 401;
-        throw res.status(error.statusCode).json({ error: error.message});
+        throw error;
     }
 
     res.json({status: "success"});

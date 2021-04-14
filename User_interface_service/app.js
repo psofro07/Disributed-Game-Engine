@@ -4,6 +4,7 @@ const express = require('express');
 const ejs = require("ejs");
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const session = require('express-session');
 const app = express();
 
 const registerRoutes = require('./routes/register');
@@ -13,6 +14,7 @@ const homeRoutes = require('./routes/home');
 app.set('view engine', 'ejs');
 app.use(express.static("public"));
 app.use(cookieParser());
+app.use(session({secret: 'somehting', resave: false, saveUninitialized: false}));
 
 app.use(bodyParser.json());                            // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({ extended: true }));    // to support URL-encoded bodies
@@ -23,9 +25,10 @@ app.use(loginRoutes);
 app.use(homeRoutes);
 app.use(registerRoutes);
 
-// app.use('/', (req, res) => {
-//   res.redirect('/login');
-// })
+// unchecked
+app.get('/', (req, res) => {
+  res.redirect('/login');
+})
 
 
 app.listen(port, () => {

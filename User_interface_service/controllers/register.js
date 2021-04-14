@@ -27,9 +27,9 @@ exports.postRegister = (req, res, next) => {
 
     })
     .catch(function (error) {
-        console.log(error.response.data.msg);
+        console.log(error.response.data.message);
 
-        res.send(error.response.data.msg);
+        res.send(error.response.data.message);
     });
 }
 
