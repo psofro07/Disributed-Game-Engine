@@ -2,6 +2,39 @@ version: '3.7'
 
 services:
 
+  game-master:
+    
+    build:
+      context:  .
+      dockerfile: ./GameMasterService/Dockerfile
+    ports:
+      - "5000:8080"
+    depends_on:
+      - mongo
+    restart: always
+    volumes:
+      - ./GameMasterService:/usr/src/app
+
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+
+  mongo-express:
+    container_name: mongo-express
+    image: mongo-express:0.54
+    restart: always
+    ports:
+      - 8081:8081
+    environment: 
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ""
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ""
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: pass
+    depends_on: 
+      - mongo
+
   mysqldb:
     container_name: sql-auth
     image: mysql:latest
