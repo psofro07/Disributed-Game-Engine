@@ -29,7 +29,7 @@ exports.postLogin = (req, res, next) => {
     req.session.username = username;
     req.session.email = email;
     req.session.role = role;
-    res.cookie('token', token, {maxAge: 100000, httpOnly:true}).json({status: "Success", redirect: '/home'});
+    res.cookie('token', token, {maxAge: 1000000, httpOnly:true}).json({status: "Success", redirect: '/home'});
   })
   .catch(function (error) {
     console.log(error.response.data.message);

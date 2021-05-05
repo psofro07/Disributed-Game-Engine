@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package myChatPackage;
+
+service myChat {
+
+    rpc connectUser(myUser) returns (assignUser);
+    rpc joinGame(gameUser) returns (gameUserRDY);
+}
+
+
+message myUser {
+    string username = 1;
+}
+
+message assignUser {
+    bool success = 1;
+    string username = 2;
+    string text = 3;
+}
+
+message voidParam {}
+
+message gameUser {
+    string username = 1;
+    bool gameCreator = 2;
+}
+
+message gameUserRDY {
+    bool gameCreator = 1;
+    bool gameFound = 2;
+    string gameId = 3;
+}

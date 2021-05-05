@@ -12,5 +12,5 @@ RUN mv /usr/src/app/node_modules /usr/src/
 
 COPY ./GameMasterService /usr/src/app
 
-EXPOSE 8080
+EXPOSE 5000
 CMD [ "npm", "start"]
