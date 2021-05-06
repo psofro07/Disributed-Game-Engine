@@ -14,7 +14,7 @@ module.exports = (req, res, next) => {
 
     axios(config)
     .then(function (response) {
-        console.log(JSON.stringify(response.data));
+        console.log("Token: " + JSON.stringify(response.data));
         next();
     })
     .catch(function (error) {

@@ -28,6 +28,7 @@ exports.getPractice = (req, res, next) => {
     var gameCreator = false;
     var gameFound = false;
     var gameJoined_id = null;
+    var searchCount = 0;
 
 
 
@@ -50,14 +51,13 @@ exports.getPractice = (req, res, next) => {
                     findGame();
                 }
                 else{
-                    console.log("Cant connect!");
+                    console.log(response.text);
                 }
             }
 
         });
         
     }
-
 
     function findGame(){
 
@@ -88,28 +88,46 @@ exports.getPractice = (req, res, next) => {
         }
         else{
 
-            // Waiting for a player to join my game.
-            client.joinGame({"username": username, "gameCreator": gameCreator}, (err, response) => {
-                
-                console.log("Waiting for a player to join my game");
+            if(client.getChannel() ){
 
-                if(response.gameFound === false){
-                    console.log("No one joined my game yet");
-                    setTimeout(() => {console.log("I waited2"); findGame();}, GET_MESSAGES_INTERVAL);
-                }
-                else {
 
-                    console.log("Game found! Recieved from server: "+ JSON.stringify(response));
-                    gameFound = response.gameFound; // true
-                    gameJoined_id = response.gameId;
+                // Waiting for a player to join my game.
+                client.joinGame({"username": username, "gameCreator": gameCreator}, (err, response) => {
                     
-                }
+                    console.log("Waiting for a player to join my game");
 
-            });
+                    if(response.gameFound === false){
+                        console.log("No one joined my game yet");
+                        setTimeout(() => {
+                            if(searchCount < 10){
+                                console.log("I waited2");
+                                searchCount = searchCount + 1;
+                                findGame();                         
+                            }
+                            else{
+                                client.close();
+                                console.log("No available games found at this time try again later");
+                                next();
+                            }
+                        }, GET_MESSAGES_INTERVAL);
+                    }
+                    else {
+
+                        console.log("Game found! Recieved from server: "+ JSON.stringify(response));
+                        gameFound = response.gameFound; // true
+                        gameJoined_id = response.gameId;
+                        
+                    }
+
+                });
+            }
+            else {
+                console.log("No available games at this time try again later!");
+                next();
+            }
 
         }
 
-        
     }
 
     next();

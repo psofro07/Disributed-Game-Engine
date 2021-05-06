@@ -12,7 +12,7 @@ const grpcObject = grpc.loadPackageDefinition(packageDef);
 const mychatPackage = grpcObject.myChatPackage;
 
 
-var userMList = [];
+var matchmakingList = [];
 var userGList = [];
 var gameLobby = [];
 var anonymousCount = 0;
@@ -26,25 +26,27 @@ function connectUser (call, callback) {
 
     let username = call.request.username;
 
-    if(username === ''){
+    if(typeof(username) === "undefined"){
         callback(null, {"success": false, "username": username, "text": "Invalid User"});
     }
-
-    if( !userGList.includes(username) || !userMList.includes(username) ){
-
-        anonymousCount++;
-        user = "user" + anonymousCount;
-        userMList.push(username);                         // TODO: Insert in Matchmake
-
-        console.log("User " + username + ' entered matchmaking');
-        callback(null, {"success": true, "username": username, "text": "Matchmaking"});       
-
-    } 
     else {
 
-        callback(null, {"success": false, "username": username, "text": "User is already in M or G!"});
-    }
+        if(!matchmakingList.includes(username)){
 
+            anonymousCount++;
+            user = "user" + anonymousCount;
+            matchmakingList.push(username);                         // TODO: Insert in Matchmake
+    
+            console.log("User " + username + " entered matchmaking");
+            callback(null, {"success": true, "username": username, "text": "Matchmaking"});       
+    
+        } 
+        else {
+    
+            callback(null, {"success": false, "username": username, "text": "User is already in matchmaking!"});
+        }
+    }
+  
 }
 
 
