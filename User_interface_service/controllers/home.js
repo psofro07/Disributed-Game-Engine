@@ -1,5 +1,3 @@
-
-
 exports.getHome = (req, res, next) => {
     const username = req.session.username;
     const email = req.session.email;

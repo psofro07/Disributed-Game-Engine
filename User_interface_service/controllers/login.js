@@ -27,6 +27,7 @@ exports.postLogin = (req, res, next) => {
     const role = response.data.role;
 
     req.session.username = username;
+    req.session.isLoggedIn = true;
     req.session.email = email;
     req.session.role = role;
     res.cookie('token', token, {maxAge: 1000000, httpOnly:true}).json({status: "Success", redirect: '/home'});

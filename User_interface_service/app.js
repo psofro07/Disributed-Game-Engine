@@ -9,6 +9,7 @@ const app = express();
 
 const registerRoutes = require('./routes/register');
 const loginRoutes = require('./routes/login');
+const logoutRoutes = require('./routes/logout');
 const homeRoutes = require('./routes/home');
 
 app.set('view engine', 'ejs');
@@ -22,6 +23,7 @@ app.use(bodyParser.urlencoded({ extended: true }));    // to support URL-encoded
 const port = 3000;
 
 app.use(loginRoutes);
+app.use(logoutRoutes);
 app.use(homeRoutes);
 app.use(registerRoutes);
 
