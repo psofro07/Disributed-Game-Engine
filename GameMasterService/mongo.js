@@ -2,9 +2,9 @@
 const express = require("express");
 const app = express();
 
-const connectDb = require("./src/connection");
+const connectDb = require("./config/connection");
 
-const User = require("./src/User.model");
+const User = require("./config/models/User.model");
 
 const PORT = 8080;
 
