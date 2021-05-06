@@ -76,7 +76,7 @@ exports.getPractice = (req, res, next) => {
                         setTimeout(() => {console.log("I waited1"); findGame();}, GET_MESSAGES_INTERVAL );
                     }
                     else {
-                        console.log("Game found! Recieved from server: "+ JSON.stringify(response));
+                        console.log("User"+username+ " found game! Recieved from server: "+ JSON.stringify(response));
                         gameFound = response.gameFound; // true
                         gameJoined_id = response.gameId;
                     }
@@ -108,7 +108,7 @@ exports.getPractice = (req, res, next) => {
                 }
                 else {
 
-                    console.log("Game found! Recieved from server: "+ JSON.stringify(response));
+                    console.log("User"+username+ " found game! Recieved from server: "+ JSON.stringify(response));
                     gameFound = response.gameFound; // true
                     gameJoined_id = response.gameId;
                     

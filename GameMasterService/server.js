@@ -1,5 +1,4 @@
-// Create unique game ID.
-//const uuidv4 = require("uuid/v4")
+require("dotenv").config();
 
 const grpc = require("grpc");
 // protoLoader used for compilation of proto file into JS.
@@ -10,6 +9,18 @@ const packageDef = protoLoader.loadSync("mychat.proto", {});
 const grpcObject = grpc.loadPackageDefinition(packageDef);
 // Create package from object.
 const mychatPackage = grpcObject.myChatPackage;
+
+// Connect to MongoDB.
+const connectDb = require("./config/connection");
+
+// Create unique game ID.
+const {v4 : uuidv4} = require("uuid");
+
+
+
+
+// User schema.
+const User = require("./config/models/User.model");
 
 
 var matchmakingList = [];
@@ -80,6 +91,7 @@ function joinGame (call, callback) {
                 }
                 
                 i++;
+                return true;
             });
 
             if (foundGame === false){
@@ -114,7 +126,7 @@ function joinGame (call, callback) {
                 if(game.player2 !== null){
 
                     // Matchmaking complete
-                    console.log("Game found");     
+                    console.log("User: "+ username +" found a game!");     
                     callback(null, {gameCreator: true, gameFound: true, gameId: game.gameId});    
                 }
                 else {
@@ -135,7 +147,7 @@ function createGame (username) {
 
     
     let game = {
-        gameId: "uuidv4()",
+        gameId: uuidv4(),
         player1: username,
         player2: null,
         type: "chess"
@@ -163,3 +175,17 @@ server.addService(mychatPackage.myChat.service,
 server.bind("game-master:5000", grpc.ServerCredentials.createInsecure());
 
     server.start();
+
+    connectDb();
+
+        const user1 = new User({ username: "userTest" });
+
+        user1.save().then( () => console.log("User created") );
+
+
+
+   
+
+    // connectDb().then(() => {
+    //     console.log("--------------MongoDB connected------------");
+    // });
