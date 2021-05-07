@@ -44,7 +44,7 @@ function connectUser (call, callback) {
     if(typeof(username) === "undefined"){
         callback(null, {"success": false, "username": username, "text": "Invalid User"});
     }
-    else {
+    else{
 
         if(!matchmakingList.includes(username)){
 
@@ -56,7 +56,7 @@ function connectUser (call, callback) {
             callback(null, {"success": true, "username": username, "text": "Matchmaking"});       
     
         } 
-        else {
+        else{
     
             callback(null, {"success": false, "username": username, "text": "User is already in matchmaking!"});
         }
@@ -84,36 +84,21 @@ async function joinGame (call, callback) {
             let foundGame = false;
             let gameJoined = null;
 
-            let game = await Game.updateOne({'player2': null}, {
-                'player2': username
-            }, err => {
-                console.log(err);
+            let game = await Game.updateOne( {'player2': null}, {'player2': username},
+            (err, game ) => {
+                if(err){
+                    console.log(err);
+                }
+                else{
+                    foundGame = true;
+                    gameJoined = game.gameID;
+                }
             });
 
-            console.log(game.n);
-
-            if(game.n === 1){
-                foundGame = true;
-                gameJoined = game.gameID;
-            }
-            // gameLobby.every( (game) => {
-            
-            //     if (game.player2 === null){
-
-            //         gameLobby[i].player2 = username;
-            //         foundGame = true;
-            //         gameJoined = game.gameId;
-                
-            //         return false;                 // Stop the loop game joined
-            //     }
-                
-            //     i++;
-            //     return true;
-            // });
 
             if (foundGame === false){
-                let gameId = createGame(username);
-                console.log("All games were full, user: " + username + " created game: "+ gameId);     
+                let gameID = createGame(username);
+                console.log("All games were full, user: " + username + " created game: "+ gameID);     
                 callback(null, {gameCreator: true, gameFound: false});
             }
             else {
@@ -128,32 +113,32 @@ async function joinGame (call, callback) {
     
             let gameID = createGame(username);
     
-            console.log("User: " + username + "created game: "+ gameID);     
+            console.log("User: " + username + "created game: "+ gameID); 
             callback(null, {gameCreator: true, gameFound: false});
         }
 
     }
-    else {
+    else{
 
         // Check if someone joined your game
-        gameLobby.forEach((game) => {
-            
-            if (game.player1 === username){
+        let game = await Game.findOne({'player1': username}, (err, game) => {
+            if(err){
+                console.log(err);
+            }
+            else{
 
                 if(game.player2 !== null){
-
                     // Matchmaking complete
                     console.log("User: "+ username +" found a game!");     
-                    callback(null, {gameCreator: true, gameFound: true, gameId: game.gameId});    
+                    callback(null, {gameCreator: true, gameFound: true, gameId: game.gameId}); 
                 }
-                else {
+                else{
                     // No opponent found yet
                     console.log("Game not found for: "+username +" yet.");
                     callback(null, {gameCreator: true, gameFound: false});
                 }
             }
         });
-
     }
 }
 

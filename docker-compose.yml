@@ -25,8 +25,8 @@ services:
       MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
       MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
       MONGO_INITDB_DATABASE: GameMaster
-#    volumes:
-#        - myMongoDB-data:/data/db
+    # volumes:
+    #   - myMongoDB-data:/data/db
     ports:
       - "27017:27017"
     networks:

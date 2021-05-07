@@ -21,6 +21,14 @@ const gameSchema = new mongoose.Schema({
         type: String,
         enum: ['chess', 'tic-tac-toe'],
         required: true,
+    },
+    player1Score: {
+        type: Number,
+        default: 0
+    },
+    player2Score: {
+        type: Number,
+        default: 0
     }
 });
 

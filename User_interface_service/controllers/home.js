@@ -70,12 +70,12 @@ exports.getPractice = (req, res, next) => {
                 else {
 
                     if( response.gameFound === false){
-                        console.log("There were no available games so I created one");
+                        console.log("There were no available games so I created one.");
                         gameCreator = response.gameCreator; // true
-                        setTimeout(() => {console.log("I waited1"); findGame();}, GET_MESSAGES_INTERVAL );
+                        setTimeout(() => {findGame();}, GET_MESSAGES_INTERVAL );
                     }
                     else {
-                        console.log("User"+username+ " found game! Recieved from server: "+ JSON.stringify(response));
+                        console.log("User "+username+ " found game! Recieved from server: "+ JSON.stringify(response));
                         gameFound = response.gameFound; // true
                         gameJoined_id = response.gameId;
                         res.render('chess');
@@ -91,43 +91,45 @@ exports.getPractice = (req, res, next) => {
             // Waiting for a player to join my game.
             client.joinGame({"username": username, "gameCreator": gameCreator}, (err, response) => {
                 
-                console.log("Waiting for a player to join my game");
+                console.log("Waiting for a player to join my game.");
 
                 if(response.gameFound === false){
-                    console.log("No one joined my game yet");
+                    //console.log("No one joined my game yet");
                     setTimeout(() => {
                         if(searchCount < 10){
-                            console.log("I waited2");
+                            console.log("Waiting...");
                             searchCount = searchCount + 1;
                             findGame();                         
                         }
                         else{
                             client.close();
-                            console.log("No available games found at this time try again later");
+                            console.log("Server timed out.");
+                            console.log("No available games found at this time try again later.");
                             next();
                         }
                     }, GET_MESSAGES_INTERVAL);
                 }
                 else {
 
-                    console.log("User"+username+ " found game! Recieved from server: "+ JSON.stringify(response));
+                    console.log("User "+username+ " found game! Recieved from server: "+ JSON.stringify(response));
                     gameFound = response.gameFound; // true
                     gameJoined_id = response.gameId;
                     
-                    console.log("Waiting for a player to join my game");
+                    console.log("Waiting for a player to join my game.");
 
                     if(response.gameFound === false){
-                        console.log("No one joined my game yet");
+                        //console.log("No one joined my game yet");
                         setTimeout(() => {
                             if(searchCount < 10){
-                                console.log("I waited2");
+                                console.log("Waiting...");
                                 searchCount = searchCount + 1;
                                 findGame();                         
                             }
                             else{
                                 // TODO: destroy the game you created.
                                 client.close();
-                                console.log("No available games found at this time try again later");
+                                console.log("Server timed out.");
+                                console.log("No available games found at this time try again later.");
                                 res.redirect('/home');
                                 
                             }
