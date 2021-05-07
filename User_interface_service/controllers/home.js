@@ -79,6 +79,7 @@ exports.getPractice = (req, res, next) => {
                         console.log("User"+username+ " found game! Recieved from server: "+ JSON.stringify(response));
                         gameFound = response.gameFound; // true
                         gameJoined_id = response.gameId;
+                        res.render('chess');
                     }
                 }
         
@@ -112,7 +113,30 @@ exports.getPractice = (req, res, next) => {
                     gameFound = response.gameFound; // true
                     gameJoined_id = response.gameId;
                     
-                }
+                    console.log("Waiting for a player to join my game");
+
+                    if(response.gameFound === false){
+                        console.log("No one joined my game yet");
+                        setTimeout(() => {
+                            if(searchCount < 10){
+                                console.log("I waited2");
+                                searchCount = searchCount + 1;
+                                findGame();                         
+                            }
+                            else{
+                                client.close();
+                                console.log("No available games found at this time try again later");
+                                next();
+                            }
+                        }, GET_MESSAGES_INTERVAL);
+                    }
+                    else {
+
+                        console.log("Game found! Recieved from server: "+ JSON.stringify(response));
+                        gameFound = response.gameFound; // true
+                        gameJoined_id = response.gameId;
+                        res.render('chess');
+                    }
 
             });
 
@@ -120,5 +144,5 @@ exports.getPractice = (req, res, next) => {
 
     }
 
-    next();
+    
 }
