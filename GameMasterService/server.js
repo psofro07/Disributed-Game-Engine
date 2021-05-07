@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+// ------------------- GRPC --------------------------------------//
 const grpc = require("grpc");
 // protoLoader used for compilation of proto file into JS.
 const protoLoader = require("@grpc/proto-loader");
@@ -10,17 +11,20 @@ const grpcObject = grpc.loadPackageDefinition(packageDef);
 // Create package from object.
 const mychatPackage = grpcObject.myChatPackage;
 
-// Connect to MongoDB.
-const connectDb = require("./config/connection");
+
 
 // Create unique game ID.
 const {v4 : uuidv4} = require("uuid");
 
+// ------------------- GRPC --------------------------------------//
 
-
-
-// User schema.
-const User = require("./config/models/User.model");
+// ------------------ mongoDB ------------------------------------//
+// Connect to MongoDB.
+const connectDb = require("./config/connection");
+// Game schema.
+const Game = require("./config/models/Game.model");
+const { query } = require("express");
+// ------------------ mongoDB ------------------------------------//
 
 
 var matchmakingList = [];
@@ -63,7 +67,7 @@ function connectUser (call, callback) {
 
 // * {string username, bool creator}
 // * {bool player1, bool gameFound,string gameId}
-function joinGame (call, callback) {
+async function joinGame (call, callback) {
 
     let username = call.request.username;
     let gameCreator = call.request.gameCreator;
@@ -79,20 +83,33 @@ function joinGame (call, callback) {
             let i = 0;
             let foundGame = false;
             let gameJoined = null;
-            gameLobby.every( (game) => {
-            
-                if (game.player2 === null){
 
-                    gameLobby[i].player2 = username;
-                    foundGame = true;
-                    gameJoined = game.gameId;
-                
-                    return false;                 // Stop the loop game joined
-                }
-                
-                i++;
-                return true;
+            let game = await Game.updateOne({'player2': null}, {
+                'player2': username
+            }, err => {
+                console.log(err);
             });
+
+            console.log(game.n);
+
+            if(game.n === 1){
+                foundGame = true;
+                gameJoined = game.gameID;
+            }
+            // gameLobby.every( (game) => {
+            
+            //     if (game.player2 === null){
+
+            //         gameLobby[i].player2 = username;
+            //         foundGame = true;
+            //         gameJoined = game.gameId;
+                
+            //         return false;                 // Stop the loop game joined
+            //     }
+                
+            //     i++;
+            //     return true;
+            // });
 
             if (foundGame === false){
                 let gameId = createGame(username);
@@ -109,9 +126,9 @@ function joinGame (call, callback) {
 
             // No games, create one
     
-            let gameId = createGame(username);
+            let gameID = createGame(username);
     
-            console.log("User: " + username + "created game: "+ gameId);     
+            console.log("User: " + username + "created game: "+ gameID);     
             callback(null, {gameCreator: true, gameFound: false});
         }
 
@@ -146,16 +163,25 @@ function joinGame (call, callback) {
 function createGame (username) {
 
     
-    let game = {
-        gameId: uuidv4(),
+    let game = new Game ({
+        gameID: uuidv4(),
         player1: username,
         player2: null,
         type: "chess"
-    }
+    });
 
-    gameLobby.push(game);                 // TODO create new document
+    gameLobby.push(game);
 
-    return game.gameId;
+    game
+        .save()
+        .then(() => {
+            console.log("Game created with ID: "+game.gameID);
+        })
+        .catch( err => {
+            console.log(err);
+        });
+
+    return game.gameID;
 
 }
 
@@ -178,14 +204,3 @@ server.bind("game-master:5000", grpc.ServerCredentials.createInsecure());
 
     connectDb();
 
-        const user1 = new User({ username: "userTest" });
-
-        user1.save().then( () => console.log("User created") );
-
-
-
-   
-
-    // connectDb().then(() => {
-    //     console.log("--------------MongoDB connected------------");
-    // });
