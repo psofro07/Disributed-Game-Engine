@@ -84,14 +84,16 @@ async function joinGame (call, callback) {
             let foundGame = false;
             let gameJoined = null;
 
-            let game = await Game.updateOne( {'player2': null}, {'player2': username},
+            await Game.findOneAndUpdate( {'player2': null}, {'player2': username},
             (err, game ) => {
                 if(err){
                     console.log(err);
                 }
                 else{
-                    foundGame = true;
-                    gameJoined = game.gameID;
+                    if(game !== null){
+                        foundGame = true;
+                        gameJoined = game.gameID;
+                    }
                 }
             });
 
@@ -130,7 +132,7 @@ async function joinGame (call, callback) {
                 if(game.player2 !== null){
                     // Matchmaking complete
                     console.log("User: "+ username +" found a game!");     
-                    callback(null, {gameCreator: true, gameFound: true, gameId: game.gameId}); 
+                    callback(null, {gameCreator: true, gameFound: true, gameId: game.gameID}); 
                 }
                 else{
                     // No opponent found yet

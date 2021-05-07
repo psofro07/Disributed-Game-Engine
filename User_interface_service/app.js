@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const app = express();
 
+const gameRoutes = require('./routes/game');
 const registerRoutes = require('./routes/register');
 const loginRoutes = require('./routes/login');
 const logoutRoutes = require('./routes/logout');
@@ -22,6 +23,7 @@ app.use(bodyParser.urlencoded({ extended: true }));    // to support URL-encoded
 
 const port = 3000;
 
+app.use(gameRoutes);
 app.use(loginRoutes);
 app.use(logoutRoutes);
 app.use(homeRoutes);
