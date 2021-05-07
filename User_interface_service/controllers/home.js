@@ -3,8 +3,7 @@ exports.getHome = (req, res, next) => {
     const email = req.session.email;
     const role = req.session.role;
 
-    res.render('home', { email: email, username: username, role: role});
-    
+    res.render('home', { email: email, username: username, role: role}); 
 }
 
 exports.getPractice = (req, res, next) => {
@@ -80,6 +79,8 @@ exports.getPractice = (req, res, next) => {
                         gameFound = response.gameFound; // true
                         gameJoined_id = response.gameId;
                         res.render('chess');
+                        //res.redirect('/home');
+                        //res.redirect('/home');
                     }
                 }
         
@@ -124,9 +125,11 @@ exports.getPractice = (req, res, next) => {
                                 findGame();                         
                             }
                             else{
+                                // TODO: destroy the game you created.
                                 client.close();
                                 console.log("No available games found at this time try again later");
-                                next();
+                                res.redirect('/home');
+                                
                             }
                         }, GET_MESSAGES_INTERVAL);
                     }
@@ -137,7 +140,7 @@ exports.getPractice = (req, res, next) => {
                         gameJoined_id = response.gameId;
                         res.render('chess');
                     }
-
+                }
             });
 
         }
