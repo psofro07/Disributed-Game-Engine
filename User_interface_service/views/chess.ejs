@@ -30,7 +30,7 @@
 	var board = null
 	var game = new Chess()
 	var mycolor = '<%= mycolor %>';
-	console.log(mycolor);
+	var serverTurn = 'w';
 	var $status = $('#status')
 	var $fen = $('#fen')
 	var $pgn = $('#pgn')
@@ -41,7 +41,7 @@
 		if (game.game_over()) return false
 
 		// only pick up pieces for the side to move
-		if ((game.turn() === mycolor && piece.search(/^b/) !== -1) || (game.turn() !== mycolor && piece.search(/^w/) !== -1)) {
+		if (( mycolor === 'w' && piece.search(/^b/) !== -1) || ( mycolor === 'b' && piece.search(/^w/) !== -1)) {
 			return false
 		}
 	}
@@ -68,10 +68,16 @@
 			method: "POST",
 			data: {'mycolor': mycolor, 'source': source, 'target': target},
 			success: (data) => {
-				console.log(data.success);
-				if (data.success === true) {
-					console.log("DATA FROM gRPC: "+data.success);
-					updateStatus()    
+				//console.log(data);
+				if (data === true) {
+					if(mycolor === 'w'){
+						serverTurn = 'b';
+					}
+					else{
+						serverTurn = 'w';
+					}
+					
+					updateStatus();    
 				}
 				else {
 					console.log("ERROR: Something went wrong!");
@@ -92,9 +98,38 @@
 
 	function updateStatus () {
 		var status = ''
+		
+		if(serverTurn !== mycolor){
+
+			$.ajax({
+				url: "/game/receiveMove", 
+				method: "POST",
+				data: {},
+				success: (data) => {
+					//console.log(data);
+					if (data.success === true) {
+						game.move({from: data.source, to: data.target, promotion: 'q'});
+						board.position(game.fen());
+						console.log("Source: "+data.source+ "  Target: "+data.target);  
+
+						if(mycolor === 'w'){
+							serverTurn = 'w';
+						}
+						else{
+							serverTurn = 'b';
+						}
+						
+					}
+					else {
+						console.log("ERROR: Something went wrong!");
+					}
+				
+				}
+        	});
+		}
 
 		var moveColor = 'White'
-		if (game.turn() === 'b') {
+		if (serverTurn === 'b') {
 			moveColor = 'Black'
 		}
 
@@ -136,9 +171,32 @@
 		onDrop: onDrop,
 		onSnapEnd: onSnapEnd
 	}
-	board = Chessboard('myBoard', config)
 
-	updateStatus()
+	//initialization
+	board = Chessboard('myBoard', config)
+	if(mycolor === 'w' ){
+		$.ajax({
+			url: "/game/initializeGame", 
+			method: "POST",
+			data: {},
+			success: (data) => {
+				//console.log(data);
+				if (data === true) {
+					console.log("Im white");
+					updateStatus();    
+				}
+				else {
+					console.log("ERROR: Failed to init!");
+				}
+			
+			}
+		});
+	}
+	else{
+		console.log("Im black");
+		updateStatus();
+	}
+	
 </script>
 </body>
 </html>

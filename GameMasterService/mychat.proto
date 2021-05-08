@@ -7,6 +7,9 @@ service myChat {
     rpc connectUser(myUser) returns (assignUser);
     rpc joinGame(gameUser) returns (gameUserRDY);
     rpc pushMove(playerMove) returns (status);
+    rpc receiveMove(player) returns (playerMove);
+    rpc initializeGame(init) returns (status);
+    rpc checkTurn(turn) returns (status);
 }
 
 
@@ -38,6 +41,27 @@ message playerMove {
     string gameID = 2;
     string source = 3;
     string target = 4;
+    bool success = 5;
+}
+
+message move {
+    string source = 1;
+    string target = 2;
+    bool success = 3;
+}
+
+message player {
+    string username = 1;
+    string gameID = 2;
+}
+
+message turn {
+    string gameID = 1;
+    int64 turn = 2;
+}
+
+message init {
+    string gameID = 1;
 }
 
 message status {
