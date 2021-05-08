@@ -145,8 +145,6 @@ async function joinGame (call, callback) {
 }
 
 
-// ? Not part of the service functions.
-
 function createGame (username) {
 
     
@@ -173,7 +171,39 @@ function createGame (username) {
 }
 
 
+// * ------------------------------------------------------------- PLAYMASTER ---------------------------------------------------------------- //
 
+
+function pushMove (call, callback) {
+
+    let username = call.request.username;
+    let gameID = call.request.gameID;
+    let source = call.request.source;
+    let target = call.request.target;
+
+    let move = {
+        gameID: gameID,
+        move_ID: 1,
+        move: {
+            source: source,
+            target: target
+        },
+        move_by: username
+    }
+    
+    try {
+        gameChessMove.push(move);
+    } catch (err) {
+        console.log(err);
+        callback(null, {success: "false"});
+        
+    }
+    console.log(move);
+    callback(null, {success: "true"});
+}
+
+
+var gameChessMove = [];
 
 // Main
 const server = new grpc.Server();
@@ -182,7 +212,8 @@ const server = new grpc.Server();
 server.addService(mychatPackage.myChat.service,
     {
         "connectUser": connectUser,
-        "joinGame": joinGame
+        "joinGame": joinGame,
+        "pushMove": pushMove
     });
 
 server.bind("game-master:5000", grpc.ServerCredentials.createInsecure());

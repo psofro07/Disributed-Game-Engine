@@ -6,6 +6,7 @@ service myChat {
 
     rpc connectUser(myUser) returns (assignUser);
     rpc joinGame(gameUser) returns (gameUserRDY);
+    rpc pushMove(playerMove) returns (status);
 }
 
 
@@ -30,4 +31,15 @@ message gameUserRDY {
     bool gameCreator = 1;
     bool gameFound = 2;
     string gameId = 3;
+}
+
+message playerMove {
+    string username = 1;
+    string gameID = 2;
+    string source = 3;
+    string target = 4;
+}
+
+message status {
+    bool success = 1;
 }

@@ -29,13 +29,14 @@
 	<script>
 	var board = null
 	var game = new Chess()
-	var mycolor = "<%= mycolor %>";
+	var mycolor = '<%= mycolor %>';
 	console.log(mycolor);
 	var $status = $('#status')
 	var $fen = $('#fen')
 	var $pgn = $('#pgn')
 
 	function onDragStart (source, piece, position, orientation) {
+		console.log("On dragStart         Source: "+source+"  Piece: "+piece+" Position: "+position+" Orientation: "+orientation);
 		// do not pick up pieces if the game is over
 		if (game.game_over()) return false
 
@@ -47,6 +48,8 @@
 
 	function onDrop (source, target) {
 		// see if the move is legal
+
+		console.log("Source: "+source+ "  Target: "+target);                            // H KINHSH
 		var move = game.move({
 			from: source,
 			to: target,
@@ -54,15 +57,37 @@
 		})
 
 		// illegal move
-		if (move === null) return 'snapback'
+		if (move === null){
+			console.log("ILLEGAL MOVE");
+			return 'snapback';
+		}
+		
+		
+		$.ajax({
+			url: "/game/sendMove", 
+			method: "POST",
+			data: {'mycolor': mycolor, 'source': source, 'target': target},
+			success: (data) => {
+				console.log(data.success);
+				if (data.success === true) {
+					console.log("DATA FROM gRPC: "+data.success);
+					updateStatus()    
+				}
+				else {
+					console.log("ERROR: Something went wrong!");
+				}
+            
+          	}
+        });
 
-		updateStatus()
+		
 	}
 
 	// update the board position after the piece snap
 	// for castling, en passant, pawn promotion
 	function onSnapEnd () {
 		board.position(game.fen())
+		console.log(" HELLO OnSnapEnd");
 	}
 
 	function updateStatus () {
@@ -75,23 +100,29 @@
 
 		// checkmate?
 		if (game.in_checkmate()) {
+			console.log("CHECKMATE");
 			status = 'Game over, ' + moveColor + ' is in checkmate.'
 		}
 
 		// draw?
 		else if (game.in_draw()) {
+			console.log("DRAW");
 			status = 'Game over, drawn position'
 		}
 
 		// game still on
 		else {
+			console.log("THE GAME GOES ON");
 			status = moveColor + ' to move'
 
 			// check?
 			if (game.in_check()) {
+				console.log("APEILW VASILIA");
 			status += ', ' + moveColor + ' is in check'
 			}
 	}
+
+	console.log("update status call");
 
 	$status.html(status)
 	$fen.html(game.fen())
