@@ -11,13 +11,13 @@ exports.getPractice = (req, res, next) => {
     // protoLoader used for compilation of proto file into JS.
     const protoLoader = require("@grpc/proto-loader");
     // Load synchronously.
-    const packageDef = protoLoader.loadSync("mychat.proto", {});
+    const packageDef = protoLoader.loadSync("gameMaster.proto", {});
     // Load package definition into Object.
     const grpcObject = grpc.loadPackageDefinition(packageDef);
     // Create package from object.
-    const mychatPackage = grpcObject.myChatPackage;
+    const gameMasterPackage = grpcObject.gameMasterPackage;
 
-    const client = new mychatPackage.myChat("game-master:5000", grpc.credentials.createInsecure());
+    const client = new gameMasterPackage.gameMaster("game-master:5000", grpc.credentials.createInsecure());
 
     const GET_MESSAGES_INTERVAL = 2000;
     

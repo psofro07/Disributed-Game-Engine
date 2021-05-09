@@ -1,11 +1,16 @@
 syntax = "proto3";
 
-package myChatPackage;
+package chessPackage;
 
-service myChat {
+service gameMaster {
 
     rpc connectUser(myUser) returns (assignUser);
     rpc joinGame(gameUser) returns (gameUserRDY);
+}
+
+
+service playMaster {
+    
     rpc pushMove(playerMove) returns (status);
     rpc receiveMove(player) returns (playerMove);
     rpc initializeGame(init) returns (status);

@@ -2,13 +2,13 @@ const grpc = require("grpc");
 // protoLoader used for compilation of proto file into JS.
 const protoLoader = require("@grpc/proto-loader");
 // Load synchronously.
-const packageDef = protoLoader.loadSync("mychat.proto", {});
+const packageDef = protoLoader.loadSync("playMaster.proto", {});
 // Load package definition into Object.
 const grpcObject = grpc.loadPackageDefinition(packageDef);
 // Create package from object.
-const mychatPackage = grpcObject.myChatPackage;
+const playMasterPackage = grpcObject.playMasterPackage;
 
-const client = new mychatPackage.myChat("game-master:5000", grpc.credentials.createInsecure());
+const client = new playMasterPackage.playMaster("play-master:6000", grpc.credentials.createInsecure());
 
 
 exports.chess = (req, res, next) => {

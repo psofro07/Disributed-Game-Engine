@@ -34,6 +34,10 @@ app.get('/', (req, res) => {
   res.redirect('/login');
 })
 
+app.get('/ho', (req, res) => {
+  res.render('chess', {myColor: 'w'});
+})
+
 
 app.listen(port, () => {
   console.log('App listening at http://localhost:3000');

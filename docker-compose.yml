@@ -2,6 +2,36 @@ version: '3.7'
 
 services:
 
+  play-master:
+    build:
+      context:  .
+      dockerfile: ./PlayMasterService/Dockerfile
+    ports:
+      - "6000:6000"
+    depends_on:
+      - mongoDBP
+    restart: always
+    # volumes:
+    #   - ./PlayMasterMasterService:/usr/src/app
+    networks:
+      - net1
+    
+
+  mongoDBP:
+    container_name: mongo-playmaster
+    image: mongo
+    env_file: ./.env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
+      MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+      MONGO_INITDB_DATABASE: PlayMaster
+    # volumes:
+    #   - myMongoDB-data:/data/db
+    ports:
+      - "27018:27017"
+    networks:
+      - net1
+
   game-master:
     build:
       context:  .
