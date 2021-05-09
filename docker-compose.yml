@@ -11,8 +11,8 @@ services:
     depends_on:
       - mongoDBP
     restart: always
-    # volumes:
-    #   - ./PlayMasterMasterService:/usr/src/app
+    volumes:
+      - ./PlayMasterService:/usr/src/app
     networks:
       - net1
     
@@ -154,3 +154,4 @@ volumes:
   db-config:
   db-data:
   myMongoDB-data:
+  PlayMasterService:
