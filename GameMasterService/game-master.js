@@ -18,13 +18,13 @@ const {v4 : uuidv4} = require("uuid");
 
 // ------------------- GRPC --------------------------------------//
 
-// ------------------ mongoDB ------------------------------------//
-// Connect to MongoDB.
-const connectDb = require("./config/connection");
-// Game schema.
-const Game = require("./config/models/Game.model");
-const { query } = require("express");
-// ------------------ mongoDB ------------------------------------//
+// ------------------ postgresSQLDB ------------------------------------//
+const sequelize = require('./config/connection');
+
+const Game = require('./config/models/Game.model');
+
+
+// ------------------ postgresSQLDB------------------------------------//
 
 
 var matchmakingList = [];
@@ -69,8 +69,8 @@ function connectUser (call, callback) {
 // * {bool player1, bool gameFound,string gameId}
 async function joinGame (call, callback) {
 
-    let username = call.request.username;
-    let gameCreator = call.request.gameCreator;
+    var username = call.request.username;
+    var gameCreator = call.request.gameCreator;
 
 
     // If you already created a game
@@ -80,42 +80,34 @@ async function joinGame (call, callback) {
         if(gameLobby.length !== 0){
 
             // Join a game                          // TODO insert concurrency
-            let i = 0;
-            let foundGame = false;
-            let gameJoined = null;
 
-            await Game.findOneAndUpdate( {'player2': null}, {'player2': username},
-            (err, game ) => {
-                if(err){
-                    console.log(err);
-                }
-                else{
-                    if(game !== null){
-                        foundGame = true;
-                        gameJoined = game.gameID;
+            Game.findOne({where: { player2: null } })
+                .then(game => {
+                    if(!game){
+                        let gameID = createGame(username);
+                        console.log("All games were full, user: " + username + " created game: "+ gameID);     
+                        callback(null, {gameCreator: true, gameFound: false});  
                     }
-                }
-            });
-
-
-            if (foundGame === false){
-                let gameID = createGame(username);
-                console.log("All games were full, user: " + username + " created game: "+ gameID);     
-                callback(null, {gameCreator: true, gameFound: false});
-            }
-            else {
-                console.log("User: "+username+ " Joined game!");
-                callback(null, {gameCreator: false, gameFound: true, gameId: gameJoined});
-            }
+                    else{
+                        game.update({
+                            player2: username
+                        })
+                        gameJoined = game.gameID;
+                        console.log("User: "+username+ " Joined game!");
+                        callback(null, {gameCreator: false, gameFound: true, gameId: gameJoined});
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                })
 
         }
         else {
 
             // No games, create one
-    
             let gameID = createGame(username);
     
-            console.log("User: " + username + "created game: "+ gameID); 
+            console.log("User: " + username + " created game: "+ gameID); 
             callback(null, {gameCreator: true, gameFound: false});
         }
 
@@ -123,13 +115,9 @@ async function joinGame (call, callback) {
     else{
 
         // Check if someone joined your game
-        let game = await Game.findOne({'player1': username}, (err, game) => {
-            if(err){
-                console.log(err);
-            }
-            else{
-
-                if(game.player2 !== null){
+        Game.findOne({where: {player1: username}})
+            .then(game => {
+                if(game){
                     // Matchmaking complete
                     console.log("User: "+ username +" found a game!");     
                     callback(null, {gameCreator: true, gameFound: true, gameId: game.gameID}); 
@@ -139,34 +127,39 @@ async function joinGame (call, callback) {
                     console.log("Game not found for: "+username +" yet.");
                     callback(null, {gameCreator: true, gameFound: false});
                 }
-            }
-        });
+            })
+            .catch(err => {
+                console.log(err);
+            })
     }
 }
 
 
-function createGame (username) {
+async function createGame (username) {
 
     
     let game = new Game ({
         gameID: uuidv4(),
         player1: username,
-        player2: null,
         type: "chess"
     });
 
     gameLobby.push(game);
 
-    game
-        .save()
-        .then(() => {
-            console.log("Game created with ID: "+game.gameID);
+   await Game.create({
+            gameID: uuidv4(),
+            player1: username,
+            player1Score: 0,
+            player2Score: 0,
+            type: "chess"
+         })
+        .then(result => {
+            console.log("Game created with ID: "+result.gameID);
+            return result.gameID;
         })
         .catch( err => {
             console.log(err);
         });
-
-    return game.gameID;
 
 }
 
@@ -181,9 +174,25 @@ server.addService(gameMasterPackage.gameMaster.service,
         "joinGame": joinGame
     });
 
-server.bind("game-master:5000", grpc.ServerCredentials.createInsecure());
+    //connect to db
+    sequelize
+        .sync()
+        .then( () => {
+            try {
+                sequelize.authenticate();
+                console.log('Connection has been established successfully with database.');
+              } catch (error) {
+                console.error('Unable to connect to the database:', error);
+              }
+        })
+        .then( () => {
+            
+            server.bind("game-master:5000", grpc.ServerCredentials.createInsecure());
 
-    server.start();
-
-    connectDb();
+            //start the server
+            server.start();
+        })
+        .catch(err => {
+            console.log(err);
+        })
 

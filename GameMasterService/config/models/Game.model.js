@@ -1,38 +1,43 @@
-// User.model.js
 
-const mongoose = require("mongoose");
+const Sequelize = require('sequelize');
 
+const sequelize = require('../connection');
 
-const gameSchema = new mongoose.Schema({
+const game = sequelize.define('game', {
     gameID: {
-        type: String,
-        required: true,
+        type: Sequelize.STRING,
+        autoIncrement: false,
+        allowNull: false,
+        primaryKey: true
     },
     player1: {
-        type: String,
-        required: true,
+        type: Sequelize.STRING,
+        allowNull: false,
+        required: true
     },
     player2: {
-        type: String,
-        required: false,
-        default: null
-    },
-    type: {
-        type: String,
-        enum: ['chess', 'tic-tac-toe'],
-        required: true,
+        type: Sequelize.STRING,
+        allowNull: true,
+        default: null,
+        required: true
     },
     player1Score: {
-        type: Number,
-        default: 0
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        default: 0,
+        required: true
     },
     player2Score: {
-        type: Number,
-        default: 0
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        default: 0,
+        required: true
+    },
+    type: {
+        type: Sequelize.DataTypes.ENUM('chess', 'tic-tac-toe'),
+        allowNull: false,
+        required: true
     }
-});
+})
 
-
-const Game = mongoose.model("Game", gameSchema);
-
-module.exports = Game;
+module.exports = game;
