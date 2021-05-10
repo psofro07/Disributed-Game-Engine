@@ -76,36 +76,32 @@ async function joinGame (call, callback) {
     // If you already created a game
     if(gameCreator === false){
         
-        
-        if(gameLobby.length !== 0){
+        const exists = await Game.findOne();
+        if(exists){
 
             // Join a game                          // TODO insert concurrency
 
-            Game.findOne({where: { player2: null } })
-                .then(game => {
-                    if(!game){
-                        let gameID = createGame(username);
-                        console.log("All games were full, user: " + username + " created game: "+ gameID);     
-                        callback(null, {gameCreator: true, gameFound: false});  
-                    }
-                    else{
-                        game.update({
-                            player2: username
-                        })
-                        gameJoined = game.gameID;
-                        console.log("User: "+username+ " Joined game!");
-                        callback(null, {gameCreator: false, gameFound: true, gameId: gameJoined});
-                    }
-                })
-                .catch(err => {
-                    console.log(err);
-                })
+            const game = await Game.findOne({where: { player2: null } });
 
+            if(!game){
+                let gameID = await createGame(username);
+                console.log("All games were full, user: " + username + " created game: "+ gameID);     
+                callback(null, {gameCreator: true, gameFound: false});  
+            }
+            else{
+                await game.update({
+                    player2: username
+                })
+                gameJoined = game.gameID;
+                console.log("User: "+username+ " Joined game!");
+                callback(null, {gameCreator: false, gameFound: true, gameId: gameJoined});
+            }
+               
         }
         else {
 
             // No games, create one
-            let gameID = createGame(username);
+            let gameID = await createGame(username);
     
             console.log("User: " + username + " created game: "+ gameID); 
             callback(null, {gameCreator: true, gameFound: false});
@@ -115,22 +111,18 @@ async function joinGame (call, callback) {
     else{
 
         // Check if someone joined your game
-        Game.findOne({where: {player1: username}})
-            .then(game => {
-                if(game){
-                    // Matchmaking complete
-                    console.log("User: "+ username +" found a game!");     
-                    callback(null, {gameCreator: true, gameFound: true, gameId: game.gameID}); 
-                }
-                else{
-                    // No opponent found yet
-                    console.log("Game not found for: "+username +" yet.");
-                    callback(null, {gameCreator: true, gameFound: false});
-                }
-            })
-            .catch(err => {
-                console.log(err);
-            })
+        let game = await Game.findOne({where: {player1: username}})
+        if(game.player2 === null){
+            // No opponent found yet
+            console.log("Game not found for: "+username +" yet.");
+            callback(null, {gameCreator: true, gameFound: false});
+        }
+        else{
+            // Matchmaking complete
+            console.log("User: "+ username +" found a game!");     
+            callback(null, {gameCreator: true, gameFound: true, gameId: game.gameID}); 
+        }
+            
     }
 }
 
@@ -138,29 +130,20 @@ async function joinGame (call, callback) {
 async function createGame (username) {
 
     
-    let game = new Game ({
-        gameID: uuidv4(),
-        player1: username,
-        type: "chess"
-    });
+    // let game = new Game ({
+    //     gameID: uuidv4(),
+    //     player1: username,
+    //     player1Score: 0,
+    //     player2Score: 0,
+    //     type: "chess"
+    // });
 
-    gameLobby.push(game);
+    // gameLobby.push(game);
 
-   await Game.create({
-            gameID: uuidv4(),
-            player1: username,
-            player1Score: 0,
-            player2Score: 0,
-            type: "chess"
-         })
-        .then(result => {
-            console.log("Game created with ID: "+result.gameID);
-            return result.gameID;
-        })
-        .catch( err => {
-            console.log(err);
-        });
-
+    const newGame = await Game.create({gameID: uuidv4(), player1: username, type: "chess", player1Score: 0, player2Score: 0 }); 
+        
+    console.log("Game created with ID: "+newGame.gameID);
+    return newGame.gameID;
 }
 
 
@@ -184,6 +167,8 @@ server.addService(gameMasterPackage.gameMaster.service,
               } catch (error) {
                 console.error('Unable to connect to the database:', error);
               }
+
+           
         })
         .then( () => {
             
