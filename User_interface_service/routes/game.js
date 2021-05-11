@@ -13,4 +13,6 @@ router.post('/game/receiveMove', isValidated && isLoggedIn, gameController.recei
 
 router.post('/game/initializeGame', isValidated && isLoggedIn, gameController.initializeGame);
 
+router.post('/game/endGame', isValidated && isLoggedIn, gameController.endGame);
+
 module.exports = router;

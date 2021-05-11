@@ -135,6 +135,24 @@
 
 		// checkmate?
 		if (game.in_checkmate()) {
+
+			$.ajax({
+				url: "/game/endGame", 
+				method: "POST",
+				data: {},
+				success: (data) => {
+					// //console.log(data);
+					if (data.success === true) {
+						console.log("I won!");  
+						
+					}
+					else {
+						console.log("ERROR: Something went wrong!");
+					}
+				
+				}
+        	});
+
 			console.log("CHECKMATE");
 			status = 'Game over, ' + moveColor + ' is in checkmate.'
 		}

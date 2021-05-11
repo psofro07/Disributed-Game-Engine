@@ -82,7 +82,11 @@ function initializeGame(call, callback) {
             source: null,
             target: null
         },
-        move_by: null
+        move_by: null,
+        status: {
+           state: 'playing',
+           winner: null 
+        }
     });
 
 
@@ -180,6 +184,42 @@ async function checkTurn (call, callback) {
     }
 }
 
+async function gameEnd(call, callback) {
+
+    let username = call.request.username;
+    let gameID = call.request.gameID;
+
+    let gameFound = false;
+
+    let myMove = await GameMove.findOneAndUpdate( {'gameID': gameID}, {
+        status: {
+            state: 'checkmate',
+            winner: username
+        }
+        },
+        (err, gameMove ) => {
+            if(err){
+                console.log(err);
+            }
+            else{
+                gameFound = true;
+                
+            }
+        }
+    );
+
+    if(gameFound) {
+        console.log("Game ended by: "+username);
+        callback(null, {success: true});
+    }
+    else{
+        console.log("Failed to end game: "+gameID);
+        callback(null, {success: false});
+    }
+
+
+}
+
 
 // Main
 const server = new grpc.Server();
@@ -190,7 +230,8 @@ server.addService(playMasterPackage.playMaster.service,
         "pushMove": pushMove,
         "receiveMove": receiveMove,
         "initializeGame": initializeGame,
-        "checkTurn": checkTurn
+        "checkTurn": checkTurn,
+        "gameEnd": gameEnd
     });
 
 server.bind("play-master:6000", grpc.ServerCredentials.createInsecure());

@@ -157,9 +157,10 @@ server.addService(gameMasterPackage.gameMaster.service,
             try {
                 sequelize.authenticate();
                 console.log('Connection has been established successfully with database.');
-              } catch (error) {
+            }
+            catch (error) {
                 console.error('Unable to connect to the database:', error);
-              }
+            }
         })
         .then( () => {
             Game.truncate();

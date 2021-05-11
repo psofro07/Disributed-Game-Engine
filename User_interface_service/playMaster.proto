@@ -8,6 +8,7 @@ service playMaster {
     rpc receiveMove(player) returns (playerMove);
     rpc initializeGame(init) returns (status);
     rpc checkTurn(turn) returns (status);
+    rpc gameEnd(player) returns(status);
 }
 
 
