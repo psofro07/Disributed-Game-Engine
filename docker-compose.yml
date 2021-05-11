@@ -2,6 +2,99 @@ version: '3.7'
 
 services:
 
+  play-master:
+    build:
+      context:  .
+      dockerfile: ./PlayMasterService/Dockerfile
+    ports:
+      - "6000:6000"
+    depends_on:
+      - mongoDB
+    restart: always
+    volumes:
+      - ./PlayMasterService:/usr/src/app
+    networks:
+      - net1
+  
+  game-master:
+    build:
+      context:  .
+      dockerfile: ./GameMasterService/Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres-gamemaster
+    restart: always
+    volumes:
+      - ./GameMasterService:/usr/src/app
+    networks:
+      - net1
+    
+
+  mongoDB:
+    container_name: mongo
+    image: mongo
+    env_file: ./.env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
+      MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+      MONGO_INITDB_DATABASE: PlayMaster
+    # volumes:
+    #   - myMongoDB-data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+     - net1
+
+  postgres-gamemaster:
+    container_name: sql-gamemaster
+    image: postgres
+    env_file: ./.env
+    environment:
+      POSTGRES_PASSWORD: pass
+      POSTGRES_USER: user
+      POSTGRES_DB: sql-gm
+    # volumes:
+    #   - pgdata:/var/lib/postgresql/data
+    networks:
+      - net1
+  
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    depends_on:
+      - postgres-gamemaster
+    environment:
+      PGADMIN_DEFAULT_EMAIL: user@email.com
+      PGADMIN_DEFAULT_PASSWORD: pass
+    ports:
+      - "5050:80"
+    networks: 
+      - net1
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    logging:
+      driver: none
+  
+  mongo-express:
+    container_name: mongo-express
+    image: mongo-express:0.54
+    restart: always
+    ports:
+      - 8081:8081
+    env_file: ./.env
+    environment: 
+      ME_CONFIG_MONGODB_ADMINUSERNAME: $MONGO_INITDB_ROOT_USERNAME
+      ME_CONFIG_MONGODB_ADMINPASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+      ME_CONFIG_MONGODB_SERVER: mongoDB
+      ME_CONFIG_BASICAUTH_USERNAME: $ME_CONFIG_BASICAUTH_USERNAME
+      ME_CONFIG_BASICAUTH_PASSWORD: $ME_CONFIG_BASICAUTH_PASSWORD
+    depends_on: 
+      - mongoDB
+    networks:
+      - net1
+
   mysqldb:
     container_name: sql-auth
     image: mysql:latest
@@ -56,6 +149,18 @@ services:
     networks:
       - net1
 
+  user_interface:
+    build:
+      context: .
+      dockerfile: ./User_interface_service/Dockerfile
+    volumes:
+      - ./User_interface_service:/usr/src/app
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - net1
+
 
 networks:
   net1:
@@ -63,3 +168,7 @@ networks:
 volumes: 
   db-config:
   db-data:
+  myMongoDB-data:
+  PlayMasterService:
+  pgdata:
+  pgadmin-data:

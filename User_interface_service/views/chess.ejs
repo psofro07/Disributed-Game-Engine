@@ -1,0 +1,202 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<title>chessboardjs Example #5000 - Only Allow Legal Moves</title>
+	<base href="../" />
+	<link rel="stylesheet"
+      href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"
+      integrity="sha384-q94+BZtLrkL1/ohfjR8c6L+A6qzNH9R2hBLwyoAfu3i/WCvQjzL2RQJ3uNHDISdU"
+      crossorigin="anonymous">
+
+	<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+	integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+	crossorigin="anonymous"></script>
+
+	<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"
+        integrity="sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD"
+        crossorigin="anonymous"></script>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js" 
+	integrity="sha384-s3XgLpvmHyscVpijnseAmye819Ee3yaGa8NxstkJVyA6nuDFjt59u1QvuEl/mecz" 
+	crossorigin="anonymous"></script>
+</head>
+<body>
+
+
+	<div id="myBoard" style="width: 600px"></div>
+	<script>
+	var board = null
+	var game = new Chess()
+	var mycolor = '<%= mycolor %>';
+	var serverTurn = 'w';
+	var $status = $('#status')
+	var $fen = $('#fen')
+	var $pgn = $('#pgn')
+
+	function onDragStart (source, piece, position, orientation) {
+		console.log("On dragStart         Source: "+source+"  Piece: "+piece+" Position: "+position+" Orientation: "+orientation);
+		// do not pick up pieces if the game is over
+		if (game.game_over()) return false
+
+		// only pick up pieces for the side to move
+		if (( mycolor === 'w' && piece.search(/^b/) !== -1) || ( mycolor === 'b' && piece.search(/^w/) !== -1)) {
+			return false
+		}
+	}
+
+	function onDrop (source, target) {
+		// see if the move is legal
+
+		console.log("Source: "+source+ "  Target: "+target);                            // H KINHSH
+		var move = game.move({
+			from: source,
+			to: target,
+			promotion: 'q' // NOTE: always promote to a queen for example simplicity
+		})
+
+		// illegal move
+		if (move === null){
+			console.log("ILLEGAL MOVE");
+			return 'snapback';
+		}
+		
+		
+		$.ajax({
+			url: "/game/sendMove", 
+			method: "POST",
+			data: {'mycolor': mycolor, 'source': source, 'target': target},
+			success: (data) => {
+				//console.log(data);
+				if (data === true) {
+					if(mycolor === 'w'){
+						serverTurn = 'b';
+					}
+					else{
+						serverTurn = 'w';
+					}
+					
+					updateStatus();    
+				}
+				else {
+					console.log("ERROR: Something went wrong!");
+				}
+            
+          	}
+        });
+
+		
+	}
+
+	// update the board position after the piece snap
+	// for castling, en passant, pawn promotion
+	function onSnapEnd () {
+		board.position(game.fen())
+		console.log(" HELLO OnSnapEnd");
+	}
+
+	function updateStatus () {
+		var status = ''
+		
+		if(serverTurn !== mycolor){
+
+			$.ajax({
+				url: "/game/receiveMove", 
+				method: "POST",
+				data: {},
+				success: (data) => {
+					//console.log(data);
+					if (data.success === true) {
+						game.move({from: data.source, to: data.target, promotion: 'q'});
+						board.position(game.fen());
+						console.log("Source: "+data.source+ "  Target: "+data.target);  
+
+						if(mycolor === 'w'){
+							serverTurn = 'w';
+						}
+						else{
+							serverTurn = 'b';
+						}
+						
+					}
+					else {
+						console.log("ERROR: Something went wrong!");
+					}
+				
+				}
+        	});
+		}
+
+		var moveColor = 'White'
+		if (serverTurn === 'b') {
+			moveColor = 'Black'
+		}
+
+		// checkmate?
+		if (game.in_checkmate()) {
+			console.log("CHECKMATE");
+			status = 'Game over, ' + moveColor + ' is in checkmate.'
+		}
+
+		// draw?
+		else if (game.in_draw()) {
+			console.log("DRAW");
+			status = 'Game over, drawn position'
+		}
+
+		// game still on
+		else {
+			console.log("THE GAME GOES ON");
+			status = moveColor + ' to move'
+
+			// check?
+			if (game.in_check()) {
+				console.log("APEILW VASILIA");
+			status += ', ' + moveColor + ' is in check'
+			}
+	}
+
+	console.log("update status call");
+
+	$status.html(status)
+	$fen.html(game.fen())
+	$pgn.html(game.pgn())
+	}
+
+	var config = {
+		draggable: true,
+		position: 'start',
+		onDragStart: onDragStart,
+		onDrop: onDrop,
+		onSnapEnd: onSnapEnd
+	}
+
+	//initialization
+	board = Chessboard('myBoard', config)
+	if(mycolor === 'w' ){
+		$.ajax({
+			url: "/game/initializeGame", 
+			method: "POST",
+			data: {},
+			success: (data) => {
+				//console.log(data);
+				if (data === true) {
+					console.log("Im white");
+					updateStatus();    
+				}
+				else {
+					console.log("ERROR: Failed to init!");
+				}
+			
+			}
+		});
+	}
+	else{
+		console.log("Im black");
+		updateStatus();
+	}
+	
+</script>
+</body>
+</html>

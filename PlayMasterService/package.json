@@ -1,0 +1,20 @@
+{
+  "name": "playmasterservice",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon -L play-master.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "nodemon": "^2.0.7",
+    "mongoose": "^5.12.7",
+    "express": "^4.17.1",
+    "@grpc/proto-loader": "^0.6.1",
+    "grpc": "^1.24.7",
+    "dotenv": "^8.2.0"
+  }
+}
