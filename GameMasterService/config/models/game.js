@@ -3,7 +3,7 @@ const Sequelize = require('sequelize');
 
 const sequelize = require('../connection');
 
-const game = sequelize.define('Games', {
+const game = sequelize.define('GamesList', {
     gameID: {
         type: Sequelize.STRING,
         autoIncrement: false,

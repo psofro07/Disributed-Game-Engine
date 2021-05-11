@@ -21,23 +21,19 @@ const {v4 : uuidv4} = require("uuid");
 // ------------------ postgresSQLDB ------------------------------------//
 const sequelize = require('./config/connection');
 
-const Game = require('./config/models/Game.model');
+const Game = require('./config/models/game');
+
+const Player = require('./config/models/player');
 
 
 // ------------------ postgresSQLDB------------------------------------//
-
-
-var matchmakingList = [];
-var userGList = [];
-var gameLobby = [];
-var anonymousCount = 0;
 
 
 
 // Check if the user exists in matchmaking 
 // * {string: username}
 // * {bool: success, string: username, string: text}
-function connectUser (call, callback) {
+async function connectUser (call, callback) {
 
     let username = call.request.username;
 
@@ -45,24 +41,28 @@ function connectUser (call, callback) {
         callback(null, {"success": false, "username": username, "text": "Invalid User"});
     }
     else{
-
-        if(!matchmakingList.includes(username)){
-
-            anonymousCount++;
-            user = "user" + anonymousCount;
-            matchmakingList.push(username);                         // TODO: Insert in Matchmake
-    
+        const exists = await Player.findOne({where: {username: username}});
+        if(exists === null){
             console.log("User " + username + " entered matchmaking");
-            callback(null, {"success": true, "username": username, "text": "Matchmaking"});       
-    
+            const player = await Player.create({username: username, status: 'searching'}); 
+            callback(null, {"success": true, "username": username, "text": "Matchmaking"});   
         } 
         else{
-    
-            callback(null, {"success": false, "username": username, "text": "User is already in matchmaking!"});
+            if(exists.status === 'searching'){
+                callback(null, {"success": false, "username": username, "text": "User "+username+" is already in matchmaking!"});
+            }
+            else{
+                callback(null, {"success": false, "username": username, "text": "User "+username+" is in a game!"});
+            }
+            
         }
     }
   
 }
+
+// async function remove(call, callback){
+
+// }
 
 
 // * {string username, bool creator}
@@ -77,6 +77,7 @@ async function joinGame (call, callback) {
     if(gameCreator === false){
         
         const exists = await Game.findOne();
+
         if(exists){
 
             // Join a game                          // TODO insert concurrency
@@ -94,6 +95,7 @@ async function joinGame (call, callback) {
                 })
                 gameJoined = game.gameID;
                 console.log("User: "+username+ " Joined game!");
+                const player = await Player.update({status: 'in game'}, {where: {username: username}});
                 callback(null, {gameCreator: false, gameFound: true, gameId: gameJoined});
             }
                
@@ -112,6 +114,7 @@ async function joinGame (call, callback) {
 
         // Check if someone joined your game
         let game = await Game.findOne({where: {player1: username}})
+
         if(game.player2 === null){
             // No opponent found yet
             console.log("Game not found for: "+username +" yet.");
@@ -119,7 +122,8 @@ async function joinGame (call, callback) {
         }
         else{
             // Matchmaking complete
-            console.log("User: "+ username +" found a game!");     
+            console.log("User: "+ username +" found a game!");
+            const player = await Player.update({status: 'in game'}, {where: {username: username}});     
             callback(null, {gameCreator: true, gameFound: true, gameId: game.gameID}); 
         }
             
@@ -128,17 +132,6 @@ async function joinGame (call, callback) {
 
 
 async function createGame (username) {
-
-    
-    // let game = new Game ({
-    //     gameID: uuidv4(),
-    //     player1: username,
-    //     player1Score: 0,
-    //     player2Score: 0,
-    //     type: "chess"
-    // });
-
-    // gameLobby.push(game);
 
     const newGame = await Game.create({gameID: uuidv4(), player1: username, type: "chess", player1Score: 0, player2Score: 0 }); 
         
@@ -167,8 +160,10 @@ server.addService(gameMasterPackage.gameMaster.service,
               } catch (error) {
                 console.error('Unable to connect to the database:', error);
               }
-
-           
+        })
+        .then( () => {
+            Game.truncate();
+            Player.truncate();
         })
         .then( () => {
             
