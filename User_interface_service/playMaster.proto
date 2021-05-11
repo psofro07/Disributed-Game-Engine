@@ -46,4 +46,5 @@ message init {
 
 message status {
     bool success = 1;
+    string state = 2;
 }

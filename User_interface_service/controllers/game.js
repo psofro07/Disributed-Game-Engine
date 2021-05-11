@@ -132,7 +132,14 @@ exports.receiveMove = (req, res, next) => {
                 }
                 else{
                     console.log("Not my turn yet "+ req.session.username);
-                    setTimeout(() => {receiveMove(); }, 1000 );
+
+                    if(response.state == "playing"){
+                        setTimeout(() => {receiveMove(); }, 1000 );
+                    }
+                    else{
+                        console.log("GAME REACHED THE END");
+                        return
+                    }
                 }
                 
             }

@@ -160,6 +160,7 @@ async function checkTurn (call, callback) {
 
     let foundGame = false;
     let myturn = false;
+    let state = 'playing';
 
     await GameMove.findOne( {'gameID': gameID},
         (err, gameMove ) => {
@@ -174,6 +175,7 @@ async function checkTurn (call, callback) {
                     }
                     else{
                         myturn = false;
+                        state = gameMove.status.state;
                     }             
                 }     
             }
@@ -183,17 +185,18 @@ async function checkTurn (call, callback) {
 
     if(myturn){
         console.log("Its your turn");
-        callback(null, {success: true});
+        callback(null, {success: true, state: state});
     }
     else if(foundGame) {
         console.log("Not your turn yet ");
-        callback(null, {success: false});
+        callback(null, {success: false, state: state});
     }
     else{
         console.log("Failed to find game: "+gameID);
-        callback(null, {success: false});
+        callback(null, {success: false, state: state});
     }
 }
+
 
 async function gameEnd(call, callback) {
 
