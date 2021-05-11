@@ -110,8 +110,8 @@ async function receiveMove (call, callback) {
 
     var source = null;
     var target = null;
+    var state = "playing";
     let foundGame = false;
-
 
     await GameMove.findOne( {'gameID': gameID},
         (err, gameMove ) => {
@@ -124,16 +124,27 @@ async function receiveMove (call, callback) {
                     foundGame = true;
                     source = gameMove.move.source;
                     target = gameMove.move.target;
+
+                    if (gameMove.status.state === "checkmate"){
+                        state = "checkmate";
+                    }
+                    else if(gameMove.status.state === "tie"){
+                        state = "tie";
+                    }
+                    else {
+                        state = "playing";
+                    }
+
                     console.log("Received move: "+ source +" "+target);             
                 }
             }
         }
     );
-
+    
 
     if(foundGame) {
         console.log("Received move on game:"+gameID);
-        callback(null, {source: source, target: target, success: true });
+        callback(null, {source: source, target: target, success: true, state: state});
     }
     else{
         console.log("Failed to receive move on game:"+gameID);
@@ -188,12 +199,17 @@ async function gameEnd(call, callback) {
 
     let username = call.request.username;
     let gameID = call.request.gameID;
+    let state = call.request.state;
+
+    if(state == "checkmate"){
+        username = "stalemate";
+    }
 
     let gameFound = false;
 
     let myMove = await GameMove.findOneAndUpdate( {'gameID': gameID}, {
         status: {
-            state: 'checkmate',
+            state: state,
             winner: username
         }
         },

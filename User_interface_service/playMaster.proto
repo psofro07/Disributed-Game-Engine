@@ -20,6 +20,7 @@ message playerMove {
     string source = 3;
     string target = 4;
     bool success = 5;
+    string state = 6;
 }
 
 message move {
@@ -31,6 +32,7 @@ message move {
 message player {
     string username = 1;
     string gameID = 2;
+    string state = 3;
 }
 
 message turn {

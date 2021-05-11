@@ -24,8 +24,8 @@
 </head>
 <body>
 
-
-	<div id="myBoard" style="width: 600px"></div>
+	<!-- margin: auto; align-self: center;-->
+	<div id="myBoard" style="width: 600px;"></div>
 	<script>
 	var board = null
 	var game = new Chess()
@@ -108,17 +108,25 @@
 				success: (data) => {
 					//console.log(data);
 					if (data.success === true) {
-						game.move({from: data.source, to: data.target, promotion: 'q'});
-						board.position(game.fen());
-						console.log("Source: "+data.source+ "  Target: "+data.target);  
 
-						if(mycolor === 'w'){
-							serverTurn = 'w';
+						if(data.state === "playing"){
+							game.move({from: data.source, to: data.target, promotion: 'q'});
+							board.position(game.fen());
+							console.log("Source: "+data.source+ "  Target: "+data.target);  
+
+							if(mycolor === 'w'){
+								serverTurn = 'w';
+							}
+							else{
+								serverTurn = 'b';
+							}
+						}
+						else if(data.state === "checkmate"){
+							console.log("CHECKMATE MY MAN!");
 						}
 						else{
-							serverTurn = 'b';
-						}
-						
+							console.log("tie!");
+						}				
 					}
 					else {
 						console.log("ERROR: Something went wrong!");
@@ -139,7 +147,7 @@
 			$.ajax({
 				url: "/game/endGame", 
 				method: "POST",
-				data: {},
+				data: {state: "checkmate"},
 				success: (data) => {
 					// //console.log(data);
 					if (data.success === true) {
@@ -159,6 +167,23 @@
 
 		// draw?
 		else if (game.in_draw()) {
+
+			$.ajax({
+				url: "/game/endGame", 
+				method: "POST",
+				data: {state: "tie"},
+				success: (data) => {
+					// //console.log(data);
+					if (data.success === true) {
+						console.log("ITS A TIE");		
+					}
+					else {
+						console.log("ERROR: Something went wrong!");
+					}
+				
+				}
+        	});
+
 			console.log("DRAW");
 			status = 'Game over, drawn position'
 		}

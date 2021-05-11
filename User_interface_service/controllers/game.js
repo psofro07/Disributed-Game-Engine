@@ -119,7 +119,7 @@ exports.receiveMove = (req, res, next) => {
             
                             if(response.success === true){
                                 console.log("Move received by Playmaster!");
-                                res.json({success: response.success, source: response.source, target: response.target});
+                                res.json({success: response.success, source: response.source, target: response.target, state: response.state});
                             }
                             else{
                                 console.log("Failed to receive move from Playmaster");
@@ -145,12 +145,13 @@ exports.receiveMove = (req, res, next) => {
 exports.endGame = (req, res, next) => {
     const gameID = req.session.gameID;
     const username = req.session.username;
+    const state = req.body.state;
 
     endGame();
 
     function endGame() {
 
-        client.gameEnd({"username": username, "gameID": gameID}, (err, response) => {
+        client.gameEnd({"username": username, "gameID": gameID, "state": state}, (err, response) => {
 
             if(err) {
                 console.log(err);
@@ -159,11 +160,11 @@ exports.endGame = (req, res, next) => {
 
                 if(response.success === true){
                     console.log("Game ended");
-                    res.send(response.success);
+                    res.json({success: response.success});
                 }
                 else{
                     console.log("Could not end game");
-                    res.send(response.success);
+                    res.json({success: response.success});
                 }
                 
             }
