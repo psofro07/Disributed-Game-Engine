@@ -2,36 +2,20 @@ version: '3.7'
 
 services:
 
-  # play-master:
-  #   build:
-  #     context:  .
-  #     dockerfile: ./PlayMasterService/Dockerfile
-  #   ports:
-  #     - "6000:6000"
-  #   depends_on:
-  #     - mongoDBP
-  #   restart: always
-  #   volumes:
-  #     - ./PlayMasterService:/usr/src/app
-  #   networks:
-  #     - net1
-    
-
-  # mongoDBP:
-  #   container_name: mongo-playmaster
-  #   image: mongo
-  #   env_file: ./.env
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
-  #     MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
-  #     MONGO_INITDB_DATABASE: PlayMaster
-  #   # volumes:
-  #   #   - myMongoDB-data:/data/db
-  #   ports:
-  #     - "27018:27017"
-  #   networks:
-  #     - net1
-
+  play-master:
+    build:
+      context:  .
+      dockerfile: ./PlayMasterService/Dockerfile
+    ports:
+      - "6000:6000"
+    depends_on:
+      - mongoDB
+    restart: always
+    volumes:
+      - ./PlayMasterService:/usr/src/app
+    networks:
+      - net1
+  
   game-master:
     build:
       context:  .
@@ -47,20 +31,20 @@ services:
       - net1
     
 
-  # mongoDB:
-  #   container_name: mongo
-  #   image: mongo
-  #   env_file: ./.env
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
-  #     MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
-  #     MONGO_INITDB_DATABASE: GameMaster
-  #   # volumes:
-  #   #   - myMongoDB-data:/data/db
-  #   ports:
-  #     - "27017:27017"
-  #   networks:
-  #    - net1
+  mongoDB:
+    container_name: mongo
+    image: mongo
+    env_file: ./.env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
+      MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+      MONGO_INITDB_DATABASE: PlayMaster
+    # volumes:
+    #   - myMongoDB-data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+     - net1
 
   postgres-gamemaster:
     container_name: sql-gamemaster
@@ -93,23 +77,23 @@ services:
     logging:
       driver: none
   
-  # mongo-express:
-  #   container_name: mongo-express
-  #   image: mongo-express:0.54
-  #   restart: always
-  #   ports:
-  #     - 8081:8081
-  #   env_file: ./.env
-  #   environment: 
-  #     ME_CONFIG_MONGODB_ADMINUSERNAME: $MONGO_INITDB_ROOT_USERNAME
-  #     ME_CONFIG_MONGODB_ADMINPASSWORD: $MONGO_INITDB_ROOT_PASSWORD
-  #     ME_CONFIG_MONGODB_SERVER: mongoDB
-  #     ME_CONFIG_BASICAUTH_USERNAME: $ME_CONFIG_BASICAUTH_USERNAME
-  #     ME_CONFIG_BASICAUTH_PASSWORD: $ME_CONFIG_BASICAUTH_PASSWORD
-  #   depends_on: 
-  #     - mongoDB
-  #   networks:
-  #     - net1
+  mongo-express:
+    container_name: mongo-express
+    image: mongo-express:0.54
+    restart: always
+    ports:
+      - 8081:8081
+    env_file: ./.env
+    environment: 
+      ME_CONFIG_MONGODB_ADMINUSERNAME: $MONGO_INITDB_ROOT_USERNAME
+      ME_CONFIG_MONGODB_ADMINPASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+      ME_CONFIG_MONGODB_SERVER: mongoDB
+      ME_CONFIG_BASICAUTH_USERNAME: $ME_CONFIG_BASICAUTH_USERNAME
+      ME_CONFIG_BASICAUTH_PASSWORD: $ME_CONFIG_BASICAUTH_PASSWORD
+    depends_on: 
+      - mongoDB
+    networks:
+      - net1
 
   mysqldb:
     container_name: sql-auth

@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 
 
 module.exports = () => {
-  mongoose.connect("mongodb://mongoDBP:27018", {
+  mongoose.connect("mongodb://mongoDB:27017", {
     dbName: process.env.DB_NAME,
     user: process.env.USERNAME,
     pass: process.env.PASSWORD,

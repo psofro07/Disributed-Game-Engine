@@ -18,7 +18,7 @@ const playMasterPackage = grpcObject.playMasterPackage;
 // Connect to MongoDB.
 const connectDb = require("./config/connection");
 // Game schema.
-const Game = require("./config/models/Game.model");
+const GameMove = require("./config/models/GameMove.model");
 const { query } = require("express");
 // ------------------ mongoDB ------------------------------------//
 
@@ -27,7 +27,7 @@ const { query } = require("express");
 // * ------------------------------------------------------------- PLAYMASTER ---------------------------------------------------------------- //
 
 
-function pushMove (call, callback) {
+async function pushMove (call, callback) {
 
     let username = call.request.username;
     let gameID = call.request.gameID;
@@ -35,31 +35,31 @@ function pushMove (call, callback) {
     let target = call.request.target;
     let foundGame = false;
 
-    let i=0;
-    gameChessMove.every(move => {
-        if(move.gameID === gameID){
-            gameChessMove[i].move.source = source;
-            gameChessMove[i].move.target = target;
-
-            if(gameChessMove[i].turn === 0){
-                gameChessMove[i].turn = 1; 
+    let myMove = await GameMove.findOneAndUpdate( {'gameID': gameID}, {
+        'move': {
+            'source': source,
+            'target': target
+        },
+        'move_by': username
+        },
+        (err, gameMove ) => {
+            if(err){
+                console.log(err);
             }
             else{
-                gameChessMove[i].turn = 0; 
+                if(gameMove !== null){
+                    foundGame = true;
+                    console.log("Move made by: "+username);
+                }
             }
-
-            gameChessMove[i].move_by = username;
-
-            foundGame = true;
-
-            console.log(gameChessMove[i]);
-
-            return false;
         }
-        i++;
-    })
+    );
 
+    
     if(foundGame) {
+        //Change turn
+        let move2 = await myMove.updateOne({ 'turn': !myMove.turn});
+
         console.log("Updated move on game:"+gameID);
         callback(null, {success: true});
     }
@@ -75,7 +75,7 @@ function initializeGame(call, callback) {
 
     let gameID = call.request.gameID;
 
-    let move = {
+    let move = new GameMove ({
         gameID: gameID,
         turn: 0,
         move: {
@@ -83,21 +83,24 @@ function initializeGame(call, callback) {
             target: null
         },
         move_by: null
-    }
+    });
+
+
+    move
+        .save()
+        .then(() => {
+            console.log(move);
+            callback(null, {success: true});
+        })
+        .catch( err => {
+            console.log(err);
+            callback(null, {success: false});
+        });
     
-    try {
-        gameChessMove.push(move);
-    } catch (err) {
-        console.log(err);
-        callback(null, {success: false});
-        
-    }
-    console.log(move);
-    callback(null, {success: true});
 }
 
 
-function receiveMove (call, callback) {
+async function receiveMove (call, callback) {
     let username = call.request.username;
     let gameID = call.request.gameID;
 
@@ -106,18 +109,23 @@ function receiveMove (call, callback) {
     let foundGame = false;
 
 
-    gameChessMove.every(move => {
-        if(move.gameID === gameID){
-            source = move.move.source;
-            target = move.move.target;
-
-            foundGame = true;
-
-            return false;
+    await GameMove.findOne( {'gameID': gameID},
+        (err, gameMove ) => {
+            if(err){
+                console.log(err);
+            }
+            else{
+                if(gameMove !== null){
+                    //console.log("Received move")
+                    foundGame = true;
+                    source = gameMove.move.source;
+                    target = gameMove.move.target;
+                    console.log("Received move: "+ source +" "+target);             
+                }
+            }
         }
+    );
 
-        return true;
-    })
 
     if(foundGame) {
         console.log("Received move on game:"+gameID);
@@ -130,24 +138,33 @@ function receiveMove (call, callback) {
 
 }
 
-function checkTurn (call, callback) {
+
+async function checkTurn (call, callback) {
     let turn = call.request.turn;
     let gameID = call.request.gameID;
 
     let foundGame = false;
     let myturn = false;
 
-    gameChessMove.every(move => {
-        if(move.gameID === gameID){
-            if(turn == move.turn){
-                myturn = true;
+    await GameMove.findOne( {'gameID': gameID},
+        (err, gameMove ) => {
+            if(err){
+                console.log(err);
             }
-            foundGame = true;
-
-            return false;
+            else{
+                if(gameMove !== null){
+                    foundGame = true;
+                    if(gameMove.turn == turn){
+                        myturn = true;
+                    }
+                    else{
+                        myturn = false;
+                    }             
+                }     
+            }
         }
-        return true;
-    })
+    );
+    
 
     if(myturn){
         console.log("Its your turn");
@@ -163,8 +180,6 @@ function checkTurn (call, callback) {
     }
 }
 
-
-var gameChessMove = [];
 
 // Main
 const server = new grpc.Server();
