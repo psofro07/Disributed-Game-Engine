@@ -1,0 +1,14 @@
+
+.editSucc {
+    margin-left: 2%;
+    margin-bottom: 1%;
+    font-weight: bold;
+    color: #16c79a;
+}
+
+.editFail {
+    margin-left: 2%;
+    margin-bottom: 1%;
+    font-weight: bold;
+    color: #fb3640;
+}
