@@ -45,6 +45,8 @@ services:
       - "27017:27017"
     networks:
      - net1
+    logging:
+      driver: none
 
   postgres-gamemaster:
     container_name: sql-gamemaster
@@ -94,6 +96,8 @@ services:
       - mongoDB
     networks:
       - net1
+    logging:
+      driver: none
 
   mysqldb:
     container_name: sql-auth
@@ -127,6 +131,8 @@ services:
       PMA_PORT: 3306
     #volumes:
     #  - /sessions
+    logging:
+      driver: none
 
   authentication:
     build:
