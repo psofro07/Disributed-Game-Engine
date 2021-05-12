@@ -6,6 +6,7 @@ const User = require('../models/user');
 const adminController = require('../controllers/admin');
 //const {body} = require('express-validator');
 
+router.get('/user', adminController.getUsers)
 
 router.delete('/user/:username', adminController.deleteUser);
 

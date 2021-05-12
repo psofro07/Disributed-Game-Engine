@@ -2,20 +2,34 @@ const User = require('../models/user');
 const express = require('express');
 
 
-exports.getUser = async (req, res, next) => {
+exports.getUsers = async (req, res, next) => {
 
     //const username = req.query.username;
-    const username = req.params.username;
+    //const username = req.params.username;
 
-    await User.findOne({where: { username: username } })
-        .then(user => {
-            if (!user) {
+    await User.findAll()
+        .then(users => {
+            if (!users) {
                 const error = new Error('A user with this username could not be found.');
                 error.statusCode = 401;
                 throw error;
             }
             
-            res.send(user);
+            let i=0;
+           
+            users.every(user => {
+                if(user.role === "Admin"){
+                    users.splice(i,1);
+                    return false;
+                }
+                else{
+                    i++;
+                    delete user.password;
+                    return true;  
+                }  
+            })
+
+            res.json({users: users, success: true});
         })
         .catch(err => {
             if (!err.statusCode) {
