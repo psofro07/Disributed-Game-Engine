@@ -15,25 +15,29 @@
 <%- include('partials/header.ejs') %>
 
 <div id="editStatus"></div>
-<table class="admtable table">
-    <thead>
-      <tr>
-        <th scope="col">#</th>
-        <th scope="col">Username</th>
-        <th scope="col">Email</th>
-        <th scope="col">Role</th>
-        <th scope="col">EDIT</th>
-        <th scope="col">DELETE</th>
-      </tr>
-    </thead>
-    
+<div class="tablePos">
+    <table class="admtable table">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Username</th>
+          <th scope="col">Email</th>
+          <th scope="col">Role</th>
+          <th scope="col">EDIT</th>
+          <th scope="col">DELETE</th>
+        </tr>
+      </thead>
+      
 
-    <tbody id="adminTable">
-        
+      <tbody id="adminTable">
+          
 
-    </tbody>
+      </tbody>
 
-</table>
+  </table>
+</div>
+
+<%- include('partials/footer.ejs') %>
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"
 	  integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
@@ -88,7 +92,7 @@
 
       //ajax for editing.
       $(document).on('click','.btn-edit', function () {
-          alert('hello');
+          //alert('hello');
           var currentTD = $(this).parents('tr').find('td');
           var rowVal = [];
           //alert(currentTD);
@@ -104,19 +108,11 @@
               $(this).prop('contenteditable', false)
               rowVal.push($(this).text());
             });
+
             //Change data in database
-            //alert(rowVal[0]+rowVal[1]+rowVal[2]);
             $("#editStatus").html("");
 
             editTable(rowVal[0],rowVal[1],rowVal[2]);
-            // $("#editStatus").load("ajax_adminEdit.php", {
-            //   edit_id: rowVal[0],
-            //   edit_username: rowVal[1],
-            //   edit_email: rowVal[2],
-            //   edit_role: rowVal[3],
-            //   edit_confirmed: rowVal[7],
-            //   updatebtn: rowVal[8]
-            // });
 
           }
 
@@ -126,23 +122,33 @@
     
     
     
-    //   //ajax for deleting.
-    //     $('.btn-delete').on('click', function () {
+        //ajax for deleting.
+        $(document).on('click', '.btn-delete', function () {
     
-    
-    //           var btnname = $(this).text();
-    //           var userid = $(this).attr('id');
-    //           //alert(btnname + userid);
-    //           $("#editStatus").html("");
-    //           $(this).closest('tr').remove();
-    //           $("#editStatus").load("ajax_adminDel.php", {
-    //             delete_id: userid,
-    //             delete_btn: btnname
-    //           });
-    //     });
+          var username = $(this).attr('id');
+          //alert(username);
+          $("#editStatus").html("");
+          //$(this).closest('tr').remove();
+
+          $.ajax({
+            url: "/admin/deleteTable", 
+            method: "POST",
+            data: {username: username},
+            success: (data) => {
+
+              if(data.success === true){
+                createTable();
+                $('#editStatus').html('<h2 class="editSucc">Deleted Succesfully!</h2>');
+              }
+              else{
+                $('#editStatus').html('<h2 class="editFail">Delete failed!</h2>');
+              }
+
+            }
+          });
+              
+        });
+
      });
     
-    
-
-    
-    </script>
+</script>

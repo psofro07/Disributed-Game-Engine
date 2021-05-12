@@ -1,3 +1,6 @@
+body {
+    background-color: #555;
+}
 
 .editSucc {
     margin-left: 2%;
@@ -11,4 +14,16 @@
     margin-bottom: 1%;
     font-weight: bold;
     color: #fb3640;
+}
+
+/* .tablePos {
+    padding-left: 10%;
+    padding-right: 10%;
+    padding-top: 5%;
+} */
+
+.centerW {
+    max-width: 1200px;
+    margin: auto;
+    
 }
