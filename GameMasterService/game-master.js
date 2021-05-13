@@ -60,9 +60,29 @@ async function connectUser (call, callback) {
   
 }
 
-// async function remove(call, callback){
+async function saveScore(call, callback){
+    const username = call.request.username;
+    const gameID = call.request.gameID;
+    const score = call.request.score;
 
-// }
+    const game = await Game.findOne({where: { gameID: gameID } });
+
+    // if(!game){
+    //     console.log("Game could not be found.");
+    //     callback(null, {success: false});
+    // }
+    //im player 1
+    if(game.player1 === username){
+        await Game.update({player1Score: score}, {where: {gameID: gameID}});
+        callback(null, {success: true});
+    }
+    //im player 2
+    else{
+        await Game.update({player2Score: score}, {where: {gameID: gameID}});
+        callback(null, {success: true});
+    }
+
+}
 
 
 // * {string username, bool creator}
@@ -147,7 +167,8 @@ const server = new grpc.Server();
 server.addService(gameMasterPackage.gameMaster.service,
     {
         "connectUser": connectUser,
-        "joinGame": joinGame
+        "joinGame": joinGame,
+        "saveScore": saveScore
     });
 
     //connect to db

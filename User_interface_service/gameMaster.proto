@@ -6,6 +6,7 @@ service gameMaster {
 
     rpc connectUser(myUser) returns (assignUser);
     rpc joinGame(gameUser) returns (gameUserRDY);
+    rpc saveScore(score) returns (status);
 }
 
 
@@ -62,4 +63,10 @@ message init {
 
 message status {
     bool success = 1;
+}
+
+message score {
+    string username = 1;
+    string gameID = 2;
+    float score = 3;
 }

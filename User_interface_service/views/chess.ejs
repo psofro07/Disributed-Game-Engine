@@ -111,12 +111,11 @@
 				success: (data) => {
 					//console.log(data);
 					if (data.success === true) {
-
+						game.move({from: data.source, to: data.target, promotion: 'q'});
+						board.position(game.fen());
+						console.log("Source: "+data.source+ "  Target: "+data.target);  
+						
 						if(data.state === "playing"){
-							game.move({from: data.source, to: data.target, promotion: 'q'});
-							board.position(game.fen());
-							console.log("Source: "+data.source+ "  Target: "+data.target);  
-
 							if(mycolor === 'w'){
 								serverTurn = 'w';
 							}
@@ -160,7 +159,7 @@
 			$.ajax({
 				url: "/game/endGame", 
 				method: "POST",
-				data: {state: "checkmate"},
+				data: {state: "checkmate", score: 1},
 				success: (data) => {
 					// //console.log(data);
 					if (data.success === true) {
@@ -188,7 +187,7 @@
 			$.ajax({
 				url: "/game/endGame", 
 				method: "POST",
-				data: {state: "tie"},
+				data: {state: "tie", score: 0.5},
 				success: (data) => {
 					// //console.log(data);
 					if (data.success === true) {

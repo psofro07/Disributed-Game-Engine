@@ -204,7 +204,7 @@ async function gameEnd(call, callback) {
     let gameID = call.request.gameID;
     let state = call.request.state;
 
-    if(state == "checkmate"){
+    if(state == "tie"){
         username = "stalemate";
     }
 

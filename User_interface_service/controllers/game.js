@@ -3,12 +3,18 @@ const grpc = require("grpc");
 const protoLoader = require("@grpc/proto-loader");
 // Load synchronously.
 const packageDef = protoLoader.loadSync("playMaster.proto", {});
+const packageDefGM = protoLoader.loadSync("gameMaster.proto", {});
 // Load package definition into Object.
 const grpcObject = grpc.loadPackageDefinition(packageDef);
+const grpcObjectGM = grpc.loadPackageDefinition(packageDefGM);
+
 // Create package from object.
 const playMasterPackage = grpcObject.playMasterPackage;
+const gameMasterPackage = grpcObjectGM.gameMasterPackage;
 
 const client = new playMasterPackage.playMaster("play-master:6000", grpc.credentials.createInsecure());
+const clientGM = new gameMasterPackage.gameMaster("game-master:5000", grpc.credentials.createInsecure());
+
 
 
 exports.chess = (req, res, next) => {
@@ -119,6 +125,13 @@ exports.receiveMove = (req, res, next) => {
             
                             if(response.success === true){
                                 console.log("Move received by Playmaster!");
+                                if(response.state === "checkmate"){
+                                    //console.log(req.session.username);
+                                    sendScore(username, gameID, -1);
+                                }
+                                else{
+                                    sendScore(username, gameID, 0.5);
+                                }
                                 res.json({success: response.success, source: response.source, target: response.target, state: response.state});
                             }
                             else{
@@ -138,7 +151,7 @@ exports.receiveMove = (req, res, next) => {
                     }
                     else{
                         console.log("GAME REACHED THE END");
-                        return
+                        return;
                     }
                 }
                 
@@ -149,10 +162,12 @@ exports.receiveMove = (req, res, next) => {
     }
 }
 
+
 exports.endGame = (req, res, next) => {
     const gameID = req.session.gameID;
     const username = req.session.username;
     const state = req.body.state;
+    const score = req.body.score;
 
     endGame();
 
@@ -167,6 +182,7 @@ exports.endGame = (req, res, next) => {
 
                 if(response.success === true){
                     console.log("Game ended");
+                    sendScore(username, gameID, score);
                     res.json({success: response.success});
                 }
                 else{
@@ -177,4 +193,23 @@ exports.endGame = (req, res, next) => {
             }
         })
     }
+
+}
+
+function sendScore(username, gameID, score){
+
+    clientGM.saveScore({"username": username, "gameID": gameID, "score": score}, (err, response) => {
+        
+        if(err) {
+            console.log(err);
+        }
+        else {
+            if(response.success === true){
+                console.log("Score saved for "+username);
+            }
+            else{
+                console.log("Could not save score");
+            }
+        }
+    })
 }

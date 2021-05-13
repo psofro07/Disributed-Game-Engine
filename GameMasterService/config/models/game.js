@@ -22,13 +22,13 @@ const game = sequelize.define('GamesList', {
         required: true
     },
     player1Score: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.FLOAT,
         allowNull: false,
         default: 0,
         required: true
     },
     player2Score: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.FLOAT,
         allowNull: false,
         default: 0,
         required: true
