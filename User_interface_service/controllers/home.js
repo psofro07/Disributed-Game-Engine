@@ -1,23 +1,45 @@
-exports.getHome = (req, res, next) => {
+const grpc = require("grpc");
+// protoLoader used for compilation of proto file into JS.
+const protoLoader = require("@grpc/proto-loader");
+// Load synchronously.
+const packageDef = protoLoader.loadSync("gameMaster.proto", {});
+// Load package definition into Object.
+const grpcObject = grpc.loadPackageDefinition(packageDef);
+// Create package from object.
+const gameMasterPackage = grpcObject.gameMasterPackage;
+
+const client = new gameMasterPackage.gameMaster("game-master:5000", grpc.credentials.createInsecure());
+
+
+exports.getHome = async (req, res, next) => {
     const username = req.session.username;
     const email = req.session.email;
     const role = req.session.role;
+    var practiceScore = 0;
+    var tournamentScore = 0;
 
-    res.render('home', { email: email, username: username, role: role}); 
+    await client.getScores({"username": username }, (err, response) => {
+
+        if(err) {
+            console.log(err);
+        }
+        else{
+            if(response.success === true){
+                practiceScore = response.practiceScore;
+                tournamentScore = response.tournamentScore;
+
+                res.render('home', { email: email, username: username, role: role, practiceScore: practiceScore, tournamentScore: tournamentScore}); 
+            }
+            else{
+                console.log("Could not get scores");
+            }
+        }
+    })
+
+    
 }
 
 exports.getPractice = (req, res, next) => {
-    const grpc = require("grpc");
-    // protoLoader used for compilation of proto file into JS.
-    const protoLoader = require("@grpc/proto-loader");
-    // Load synchronously.
-    const packageDef = protoLoader.loadSync("gameMaster.proto", {});
-    // Load package definition into Object.
-    const grpcObject = grpc.loadPackageDefinition(packageDef);
-    // Create package from object.
-    const gameMasterPackage = grpcObject.gameMasterPackage;
-
-    const client = new gameMasterPackage.gameMaster("game-master:5000", grpc.credentials.createInsecure());
 
     const GET_MESSAGES_INTERVAL = 2000;
     

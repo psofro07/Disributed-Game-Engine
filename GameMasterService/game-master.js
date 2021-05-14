@@ -243,6 +243,21 @@ async function savePlayer(call, callback){
 }
 
 
+async function getScores(call, callback){
+    const username = call.request.username;
+
+    try{
+        const player = await PlayerScore.findOne({where: {username: username}});
+
+        callback(null, {success: true, practiceScore: player.practiceScore, tournamentScore: player.tournamentScore});
+    }
+    catch(error){
+        console.log(error);
+        callback(null, {success: false});
+    }
+}
+
+
 async function updateScorePractice(player1, player2, score1, score2){
 
     try {
@@ -304,7 +319,8 @@ server.addService(gameMasterPackage.gameMaster.service,
         "joinGame": joinGame,
         "saveScore": saveScore,
         "gameHistory": gameHistory,
-        "savePlayer": savePlayer
+        "savePlayer": savePlayer,
+        "getScores": getScores
     });
 
     //connect to db

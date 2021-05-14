@@ -21,10 +21,10 @@
             <% } %> 
             <% if(role === 'Player') {%> 
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Practice Scores</a>
+                    <a class="nav-link" href="#">Practice History</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Tournament Scores</a>
+                    <a class="nav-link" href="#">Tournament History</a>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -45,8 +45,15 @@
                     </ul>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link"> Practice score: <%= practiceScore %> </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link">Tournament Score: <%= tournamentScore %></a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="http://localhost:3000/logout">Logout</a>
                 </li>
+                
             <% } %> 
             <% if(role === 'Official') {%> 
                 <li class="nav-item dropdown">
