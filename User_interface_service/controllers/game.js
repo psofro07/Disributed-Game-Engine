@@ -151,6 +151,7 @@ exports.receiveMove = (req, res, next) => {
                     }
                     else{
                         console.log("GAME REACHED THE END");
+                        moveGame(gameID);
                         return;
                     }
                 }
@@ -195,6 +196,25 @@ exports.endGame = (req, res, next) => {
     }
 
 }
+
+function moveGame(gameID){
+
+    clientGM.gameHistory({"gameID": gameID}, (err, response) => {
+        
+        if(err) {
+            console.log(err);
+        }
+        else {
+            if(response.success === true){
+                console.log("Game moved to history with id: "+gameID);
+            }
+            else{
+                console.log("Failed to move game with id: "+gameID);
+            }
+        }
+    })
+}
+
 
 function sendScore(username, gameID, score){
 

@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 
 const sequelize = require('../connection');
 
-const player = sequelize.define('PlayersList', {
+const player = sequelize.define('PlayerList', {
     username: {
         type: Sequelize.STRING,
         autoIncrement: false,

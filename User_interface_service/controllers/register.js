@@ -1,3 +1,17 @@
+const grpc = require("grpc");
+// protoLoader used for compilation of proto file into JS.
+const protoLoader = require("@grpc/proto-loader");
+const { response } = require("express");
+// Load synchronously.
+const packageDefGM = protoLoader.loadSync("gameMaster.proto", {});
+// Load package definition into Object.
+const grpcObjectGM = grpc.loadPackageDefinition(packageDefGM);
+// Create package from object.
+const gameMasterPackage = grpcObjectGM.gameMasterPackage;
+
+const clientGM = new gameMasterPackage.gameMaster("game-master:5000", grpc.credentials.createInsecure());
+
+
 exports.postRegister = (req, res, next) => {
     const email = req.body.email;
     const username = req.body.username;
@@ -20,8 +34,10 @@ exports.postRegister = (req, res, next) => {
     };
 
     axios(config)
-    .then(function (response) {
+    .then(async (response) => {
         console.log(response.data);
+
+        await saveUser(username);
 
         res.json({status: "Success", redirect: '/login'});
 
@@ -35,4 +51,14 @@ exports.postRegister = (req, res, next) => {
 
 exports.getRegister = (req, res, next) => {
     res.render('register', {});
+}
+
+
+async function saveUser(username){
+
+    clientGM.savePlayer({"username": username}, (err, response) => {
+        if(err) {
+            console.log(err);
+        }
+    })
 }

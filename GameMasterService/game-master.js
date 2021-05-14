@@ -25,6 +25,9 @@ const Game = require('./config/models/game');
 
 const Player = require('./config/models/player');
 
+const PlayerScore = require('./config/models/score');
+
+const History = require('./config/models/history');
 
 // ------------------ postgresSQLDB------------------------------------//
 
@@ -60,27 +63,34 @@ async function connectUser (call, callback) {
   
 }
 
+
 async function saveScore(call, callback){
+
     const username = call.request.username;
     const gameID = call.request.gameID;
     const score = call.request.score;
 
-    const game = await Game.findOne({where: { gameID: gameID } });
+    try {
+        const game = await Game.findOne({where: { gameID: gameID } });
 
-    // if(!game){
-    //     console.log("Game could not be found.");
-    //     callback(null, {success: false});
-    // }
-    //im player 1
-    if(game.player1 === username){
-        await Game.update({player1Score: score}, {where: {gameID: gameID}});
-        callback(null, {success: true});
+        //im player 1
+        if(game.player1 === username){
+            await Game.update({player1Score: score}, {where: {gameID: gameID}});
+            callback(null, {success: true});
+        }
+        //im player 2
+        else{
+            await Game.update({player2Score: score}, {where: {gameID: gameID}});
+            callback(null, {success: true});
+        }
     }
-    //im player 2
-    else{
-        await Game.update({player2Score: score}, {where: {gameID: gameID}});
-        callback(null, {success: true});
+    catch(error){
+        console.log(error);
+        callback(null, {success: false});
     }
+    
+
+    
 
 }
 
@@ -105,7 +115,7 @@ async function joinGame (call, callback) {
             const game = await Game.findOne({where: { player2: null } });
 
             if(!game){
-                let gameID = await createGame(username);
+                let gameID = await createGame(username, "practice");
                 console.log("All games were full, user: " + username + " created game: "+ gameID);     
                 callback(null, {gameCreator: true, gameFound: false});  
             }
@@ -123,7 +133,7 @@ async function joinGame (call, callback) {
         else {
 
             // No games, create one
-            let gameID = await createGame(username);
+            let gameID = await createGame(username, "practice");
     
             console.log("User: " + username + " created game: "+ gameID); 
             callback(null, {gameCreator: true, gameFound: false});
@@ -151,9 +161,133 @@ async function joinGame (call, callback) {
 }
 
 
-async function createGame (username) {
 
-    const newGame = await Game.create({gameID: uuidv4(), player1: username, type: "chess", player1Score: 0, player2Score: 0 }); 
+
+async function gameHistory(call, callback) {
+
+    const gameID = call.request.gameID;
+
+    const game = await Game.findOne({where: { gameID: gameID } });
+
+    if(!game){
+        console.log("Game could not be found.");
+        callback(null, {success: false});
+    }
+    else{
+        // First, we start a transaction and save it into a variable
+        const t = await sequelize.transaction();
+
+        try {
+
+            // Then, we do some calls passing this transaction as an option:
+
+            const result = await History.create({
+                gameID: game.gameID,
+                player1: game.player1,
+                player2: game.player2,
+                player1Score: game.player1Score,
+                player2Score: game.player2Score,
+                game: game.game,
+                type: game.type
+            }, { transaction: t });
+
+            const player1 = game.player1;
+            const player2 = game.player2;
+            const score1 = game.player1Score;
+            const score2 = game.player2Score;
+
+            await Game.destroy({ where: {gameID: game.gameID}}, { transaction: t });
+
+            // If the execution reaches this line, no errors were thrown.
+            // We commit the transaction.
+
+            await removePlayers(gameID, player1, player2);
+
+            await updateScorePractice(player1, player2, score1, score2);
+
+            await t.commit();
+
+            callback(null, {success: true});
+
+        } catch (error) {
+
+            console.log(error);
+            // If the execution reaches this line, an error was thrown.
+            // We rollback the transaction.
+            await t.rollback();
+            callback(null, {success: false});
+
+        }
+    }
+
+}
+
+
+async function savePlayer(call, callback){
+
+    const username = call.request.username;
+
+    try{
+
+        await PlayerScore.create({
+            username: username
+        })
+        console.log("User added to Game Master");
+        callback(null, {success: true});
+    }
+    catch(error){
+        console.log(error);
+        callback(null, {success: false});
+    }
+
+}
+
+
+async function updateScorePractice(player1, player2, score1, score2){
+
+    try {
+
+        //for player1
+        let player = await PlayerScore.findOne({where: {username: player1}});
+        let score = player.practiceScore + score1;
+
+        await PlayerScore.update({practiceScore: score} , {where: {username: player1}});
+        console.log("Updated practice score for "+player1);
+
+
+        //for player2
+        player = await PlayerScore.findOne({where: {username: player2}});
+        score = player.practiceScore + score2;
+
+        await PlayerScore.update({practiceScore: score} , {where: {username: player2}});
+        console.log("Updated practice score for "+player2);
+
+    }
+    catch(error){
+        console.log(error);
+    }
+    
+}
+
+
+async function removePlayers(gameID, player1, player2) {
+
+    try {
+        await Player.destroy({where: {username: player1}});
+        await Player.destroy({where: {username: player2}});
+
+        console.log("Removed players from matchmaking list");
+    }
+    catch(error){
+        console.log(error);
+    }
+    
+}
+
+
+async function createGame (username, type) {
+
+    const newGame = await Game.create({gameID: uuidv4(), player1: username, game: "chess", player1Score: 0, player2Score: 0 , type: type}); 
         
     console.log("Game created with ID: "+newGame.gameID);
     return newGame.gameID;
@@ -168,7 +302,9 @@ server.addService(gameMasterPackage.gameMaster.service,
     {
         "connectUser": connectUser,
         "joinGame": joinGame,
-        "saveScore": saveScore
+        "saveScore": saveScore,
+        "gameHistory": gameHistory,
+        "savePlayer": savePlayer
     });
 
     //connect to db

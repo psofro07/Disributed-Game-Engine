@@ -1,9 +1,8 @@
-
 const Sequelize = require('sequelize');
 
 const sequelize = require('../connection');
 
-const game = sequelize.define('GameList', {
+const game = sequelize.define('GameHistory', {
     gameID: {
         type: Sequelize.STRING,
         autoIncrement: false,
@@ -33,7 +32,7 @@ const game = sequelize.define('GameList', {
         default: 0,
         required: true
     },
-    game: {
+    type: {
         type: Sequelize.DataTypes.ENUM('chess', 'tic-tac-toe'),
         allowNull: false,
         required: true

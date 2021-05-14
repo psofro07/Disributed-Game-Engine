@@ -7,6 +7,8 @@ service gameMaster {
     rpc connectUser(myUser) returns (assignUser);
     rpc joinGame(gameUser) returns (gameUserRDY);
     rpc saveScore(score) returns (status);
+    rpc gameHistory(init) returns (status);
+    rpc savePlayer(myUser) returns (status);
 }
 
 
