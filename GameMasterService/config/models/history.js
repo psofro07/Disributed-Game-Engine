@@ -32,7 +32,7 @@ const game = sequelize.define('GameHistory', {
         default: 0,
         required: true
     },
-    type: {
+    game: {
         type: Sequelize.DataTypes.ENUM('chess', 'tic-tac-toe'),
         allowNull: false,
         required: true

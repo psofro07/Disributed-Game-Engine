@@ -27,7 +27,7 @@ const Player = require('./config/models/player');
 
 const PlayerScore = require('./config/models/score');
 
-const History = require('./config/models/history');
+const GameHistory = require('./config/models/history');
 
 // ------------------ postgresSQLDB------------------------------------//
 
@@ -181,7 +181,7 @@ async function gameHistory(call, callback) {
 
             // Then, we do some calls passing this transaction as an option:
 
-            const result = await History.create({
+            const result = await GameHistory.create({
                 gameID: game.gameID,
                 player1: game.player1,
                 player2: game.player2,
@@ -244,12 +244,51 @@ async function savePlayer(call, callback){
 
 
 async function getScores(call, callback){
+
     const username = call.request.username;
 
     try{
         const player = await PlayerScore.findOne({where: {username: username}});
 
         callback(null, {success: true, practiceScore: player.practiceScore, tournamentScore: player.tournamentScore});
+    }
+    catch(error){
+        console.log(error);
+        callback(null, {success: false});
+    }
+}
+
+
+async function getPracticeHistory(call, callback){
+
+    const username = call.request.username;
+
+    try{
+        const games = await GameHistory.findAll({
+                                where: sequelize.and(
+                                    { type: "practice" }, 
+                                    sequelize.or(
+                                        { player1: username },
+                                        { player2: username }
+                                    )
+                                )
+                            });
+         
+        var gameList = [];
+        games.forEach( game => {
+            gameList.push({
+                gameID: game.gameID,
+                player1: game.player1,
+                player2: game.player2,
+                player1Score: game.player1Score,
+                player2Score: game.player2Score,
+                game: game.game,
+                type: game.type,
+                date: game.createdAt
+            })
+        });
+        //console.log(gameList);  
+        callback(null, {success: true, games: gameList});
     }
     catch(error){
         console.log(error);
@@ -320,7 +359,8 @@ server.addService(gameMasterPackage.gameMaster.service,
         "saveScore": saveScore,
         "gameHistory": gameHistory,
         "savePlayer": savePlayer,
-        "getScores": getScores
+        "getScores": getScores,
+        "getPracticeHistory": getPracticeHistory
     });
 
     //connect to db

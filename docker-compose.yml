@@ -56,8 +56,8 @@ services:
       POSTGRES_PASSWORD: pass
       POSTGRES_USER: user
       POSTGRES_DB: sql-gm
-    # volumes:
-    #   - pgdata:/var/lib/postgresql/data
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     networks:
       - net1
   

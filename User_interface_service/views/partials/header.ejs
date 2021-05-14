@@ -5,7 +5,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <div class="container-fluid">
-      <a class="navbar-brand" href="#">Navbar</a>
+      <a class="navbar-brand" href="http://localhost:3000/home">Navbar</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
       </button>
@@ -21,7 +21,7 @@
             <% } %> 
             <% if(role === 'Player') {%> 
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Practice History</a>
+                    <a class="nav-link" href="http://localhost:3000/home/practiceHistory">Practice History</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">Tournament History</a>
@@ -44,6 +44,12 @@
                     <li><a class="dropdown-item" href="#">tic tac toe</a></li>
                     </ul>
                 </li>
+                <!-- <li class="nav-item">
+                    <a class="nav-link"> <%= username %> </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"> Role: <%= role %> </a>
+                </li> -->
                 <li class="nav-item">
                     <a class="nav-link"> Practice score: <%= practiceScore %> </a>
                 </li>

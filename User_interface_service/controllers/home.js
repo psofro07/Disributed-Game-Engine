@@ -12,31 +12,117 @@ const client = new gameMasterPackage.gameMaster("game-master:5000", grpc.credent
 
 
 exports.getHome = async (req, res, next) => {
+
     const username = req.session.username;
     const email = req.session.email;
     const role = req.session.role;
     var practiceScore = 0;
     var tournamentScore = 0;
 
-    await client.getScores({"username": username }, (err, response) => {
+    if(role === "Player"){
+        await client.getScores({"username": username }, (err, response) => {
+
+            if(err) {
+                console.log(err);
+            }
+            else{
+                if(response.success === true){
+                    practiceScore = response.practiceScore;
+                    tournamentScore = response.tournamentScore;
+                    
+                    req.session.practiceScore = practiceScore;
+                    req.session.tournamentScore = tournamentScore;
+                    res.render('home', { email: email, username: username, role: role, practiceScore: practiceScore, tournamentScore: tournamentScore}); 
+                }
+                else{
+                    console.log("Could not get scores");
+                }
+            }
+        })
+    }
+    else{
+        res.render('home', { email: email, username: username, role: role}); 
+    }
+        
+    
+}
+
+exports.practiceHistory = (req, res, next) => {
+    
+    const username = req.session.username;
+    const email = req.session.email;
+    const role = req.session.role;
+    const practiceScore = req.session.practiceScore;
+    const tournamentScore = req.session.tournamentScore 
+
+    res.render('practiceHistory', {email: email, username: username, role: role, practiceScore: practiceScore, tournamentScore: tournamentScore});
+}
+
+exports.getPracticeHistory = async (req, res, next) => {
+
+    const username = req.session.username;
+
+    await client.getPracticeHistory({"username": username }, (err, response) => {
 
         if(err) {
             console.log(err);
         }
         else{
             if(response.success === true){
-                practiceScore = response.practiceScore;
-                tournamentScore = response.tournamentScore;
 
-                res.render('home', { email: email, username: username, role: role, practiceScore: practiceScore, tournamentScore: tournamentScore}); 
+                if(response.games){
+                    //console.log(response.games);
+                let i = 1;
+                var myRow = "";
+                
+                response.games.forEach( game => {
+                    let gameID = game.gameID;
+                    let player1 = game.player1;
+                    let player2 = game.player2;
+                    let player1Score = game.player1Score;
+                    let player2Score = game.player2Score;
+                    let Game = game.game;
+                    let type = game.type;
+                    let date = game.date;
+
+                    myRow = myRow.concat(
+                        '<tr>'+
+                            '<th scope="row">'+i+'</th>'+
+                            '<td>'+gameID+'</td>'+
+                            '<td>'+player1+'</td>'+
+                            '<td>'+player2+'</td>'+
+                            '<td>'+player1Score+'</td>'+
+                            '<td>'+player2Score+'</td>'+
+                            '<td>'+Game+'</td>'+
+                            '<td>'+type+'</td>'+
+                            '<td>'+date+'</td>'+
+
+                            // '<td>'+ 
+                            //     '<button  type="submit" name="edit_btn" class="btn-edit">EDIT</button>'+
+                            // '</td>'+
+                            // '<td>'+
+                            //     '<button id="'+username+'" type="submit" name="delete_btn" class="btn-delete">DELETE</button>'+
+                            // '</td>'+
+                        '</tr>');
+                    i++;
+                })
+
+                
+                res.json({success: true, data: myRow});
+
+                } 
+                else{   
+                    res.json({success: false, data: "No history"});
+                }
+                
             }
             else{
-                console.log("Could not get scores");
+                console.log("Could not get practice history");
             }
         }
     })
 
-    
+
 }
 
 exports.getPractice = (req, res, next) => {

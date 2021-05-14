@@ -10,6 +10,7 @@ service gameMaster {
     rpc gameHistory(init) returns (status);
     rpc savePlayer(myUser) returns (status);
     rpc getScores(myUser) returns (scores);
+    rpc getPracticeHistory(myUser) returns(practiceHistory);
 }
 
 
@@ -79,3 +80,19 @@ message scores {
     float practiceScore = 2;
     float tournamentScore = 3;
 }
+
+message practiceHistory {
+    bool success = 1;
+    repeated Game games = 2;
+}
+
+message Game {
+    string gameID = 1;
+    string player1 = 2;
+    string player2 = 3; 
+    float player1Score = 4;
+    float player2Score = 5;
+    string game = 6;
+    string type = 7;
+    string date = 8;
+  }
