@@ -24,7 +24,7 @@ exports.createTable = (req, res, next) => {
 
     axios(config)
         .then(response => {
-            console.log(response.data)
+            //console.log(response.data)
             
 
             if(response.data.success === true){

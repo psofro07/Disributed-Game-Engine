@@ -29,6 +29,10 @@ const PlayerScore = require('./config/models/score');
 
 const GameHistory = require('./config/models/history');
 
+const Tournament = require('./config/models/tournament');
+
+const maxPlayers = 8;
+
 // ------------------ postgresSQLDB------------------------------------//
 
 
@@ -89,9 +93,6 @@ async function saveScore(call, callback){
         callback(null, {success: false});
     }
     
-
-    
-
 }
 
 
@@ -297,6 +298,66 @@ async function getPracticeHistory(call, callback){
 }
 
 
+async function createTournament (call, callback){
+    var gameType = call.request.gameType;
+
+    try {
+        const newTournament = await Tournament.create(
+        {
+            tournID: uuidv4(),
+            player1: "empty",
+            player2: "empty",
+            player3: "empty",
+            player4: "empty",
+            player5: "empty",
+            player6: "empty",
+            player7: "empty",
+            player8: "empty",
+            type: "chess"
+        });
+
+        console.log("Created a Tournament with ID: "+newTournament.tournID);
+        callback(null, {success: true, tournID: newTournament.tournID});
+
+    } 
+    catch (err) {
+        console.log(err);
+        callback(null, {success: false});
+    }
+
+}
+
+
+async function getPlayers (call, callback){
+
+    var tournID = call.request.tournID;
+
+    const getTournament = await Tournament.findOne({ where: {tournID: tournID}});
+
+    try {
+        // let players = {
+        //     player1: getTournament.dataValues.player1,
+        //     player2: getTournament.dataValues.player2,
+        //     player3: getTournament.dataValues.player3,
+        //     player4: getTournament.dataValues.player4,
+        //     player5: getTournament.dataValues.player5,
+        //     player6: getTournament.dataValues.player6,
+        //     player7: getTournament.dataValues.player8,
+        //     player8: getTournament.dataValues.player9,
+        // }
+
+        console.log("Fetching all players");
+        callback(null, {players: players, success: true});
+
+    } 
+    catch (err) {
+        console.log(err);
+        callback(null, {success: false});
+    }
+
+}
+
+
 async function updateScorePractice(player1, player2, score1, score2){
 
     try {
@@ -360,7 +421,9 @@ server.addService(gameMasterPackage.gameMaster.service,
         "gameHistory": gameHistory,
         "savePlayer": savePlayer,
         "getScores": getScores,
-        "getPracticeHistory": getPracticeHistory
+        "getPracticeHistory": getPracticeHistory,
+        "createTournament": createTournament,
+        "getPlayers": getPlayers
     });
 
     //connect to db
@@ -378,6 +441,7 @@ server.addService(gameMasterPackage.gameMaster.service,
         .then( () => {
             Game.truncate();
             Player.truncate();
+            Tournament.truncate();
         })
         .then( () => {
             

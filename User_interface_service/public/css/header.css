@@ -1,0 +1,56 @@
+html,
+/* body {
+    background-color: #555;
+} */
+
+.siteTitle {
+    font-weight: bold;
+        font-family: 'Helvetica', 'Arial', sans-serif;
+}
+
+
+.wrapper {
+    background: #eeeeee;
+}
+
+.centerW {
+    background-color: white;
+    max-width: 60%;
+    height: 100%;
+    margin: auto;
+}
+
+.imgHome {
+    height: 25%;
+    width: 10%;
+}
+
+.myLogo {
+    padding: 1px;
+    margin-bottom: 3px;
+    margin-right: 5px;
+}
+
+.navLiColor {
+    color: white;
+    font-weight: 250;
+}
+
+li > .linkNav{
+    color: black !important;
+    font-weight: bold;
+}
+
+li > a:hover {
+    color: #687980 !important;
+  }
+
+.mynavbar-dark {
+    background: #5b8a72;
+} 
+
+.nav-link {
+    color: black !important;
+}
+
+  

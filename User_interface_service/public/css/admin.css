@@ -23,7 +23,7 @@ body {
 } */
 
 .centerW {
-    max-width: 1200px;
-    margin: auto;
+    max-width: 65%;
+    margin: auto; 
     
 }

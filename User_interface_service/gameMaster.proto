@@ -11,6 +11,8 @@ service gameMaster {
     rpc savePlayer(myUser) returns (status);
     rpc getScores(myUser) returns (scores);
     rpc getPracticeHistory(myUser) returns(practiceHistory);
+    rpc createTournament(game) returns (newTourn);
+    rpc getPlayers(tournament) returns (tournPlayers);
 }
 
 
@@ -95,4 +97,27 @@ message Game {
     string game = 6;
     string type = 7;
     string date = 8;
-  }
+}
+
+message game {
+    string gameType = 1;
+}
+
+message newTourn {
+    bool success = 1;
+    string tournID = 2;
+}
+
+message tournament {
+    string tournID = 1;
+}
+
+message Player{
+    string playerName = 1;
+    string text = 2;
+}
+
+message tournPlayers {
+    repeated Player players = 1;
+    bool success = 2;
+}

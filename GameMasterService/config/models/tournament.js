@@ -1,0 +1,67 @@
+const Sequelize = require('sequelize');
+
+const sequelize = require('../connection');
+
+const tournament = sequelize.define('Tournament', {
+    tournID: {
+        type: Sequelize.STRING,
+        autoIncrement: false,
+        allowNull: false,
+        primaryKey: true
+    },
+    player1: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: null,
+        required: true
+    },
+    player2: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        defaultValue: null,
+        required: true
+    },
+    player3: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        defaultValue: null,
+        required: true
+    },
+    player4: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        defaultValue: null,
+        required: true
+    },
+    player5: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        defaultValue: null,
+        required: true
+    },
+    player6: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        defaultValue: null,
+        required: true
+    },
+    player7: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        defaultValue: null,
+        required: true
+    },
+    player8: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        defaultValue: null,
+        required: true
+    },
+    type: {
+        type: Sequelize.DataTypes.ENUM('chess', 'tic-tac-toe'),
+        allowNull: false,
+        required: true
+    }
+})
+
+module.exports = tournament;

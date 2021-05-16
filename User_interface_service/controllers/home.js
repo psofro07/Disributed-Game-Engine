@@ -58,6 +58,7 @@ exports.practiceHistory = (req, res, next) => {
     res.render('practiceHistory', {email: email, username: username, role: role, practiceScore: practiceScore, tournamentScore: tournamentScore});
 }
 
+
 exports.getPracticeHistory = async (req, res, next) => {
 
     const username = req.session.username;
@@ -124,6 +125,7 @@ exports.getPracticeHistory = async (req, res, next) => {
 
 
 }
+
 
 exports.getPractice = (req, res, next) => {
 
@@ -203,7 +205,7 @@ exports.getPractice = (req, res, next) => {
                 if(response.gameFound === false){
                     //console.log("No one joined my game yet");
                     setTimeout(() => {
-                        if(searchCount < 10){
+                        if(searchCount < 20){
                             console.log("Waiting...");
                             searchCount = searchCount + 1;
                             findGame();                         
