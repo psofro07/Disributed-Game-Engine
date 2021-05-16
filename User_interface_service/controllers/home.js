@@ -205,15 +205,16 @@ exports.getPractice = (req, res, next) => {
                 if(response.gameFound === false){
                     //console.log("No one joined my game yet");
                     setTimeout(() => {
-                        if(searchCount < 20){
+                        if(searchCount < 10){
                             console.log("Waiting...");
                             searchCount = searchCount + 1;
                             findGame();                         
                         }
                         else{
-                            client.close();
+                            //client.close();
                             console.log("Server timed out.");
                             console.log("No available games found at this time try again later.");
+                            client.deleteGame({"username": username}, (err, response) => {});
                             res.redirect("/home");
                         }
                     }, GET_MESSAGES_INTERVAL);

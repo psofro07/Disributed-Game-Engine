@@ -27,9 +27,23 @@ exports.chess = (req, res, next) => {
         mycolor = 'b';
     }
     
+    clientGM.getOpponent({"gameID": gameID, "username": username}, (err, response) => {
+        if(err){
+            console.log(err);
+        }
+        else{
+            if(response.success === true){
+                const opponent = response.opponentUsername;
+                res.render('chess', { mycolor: mycolor, username: username, opponent: opponent}); 
+            }
+            else{
+                console.log("Could not fetch opponent username");
+                res.render('chess', { mycolor: mycolor, username: username, opponent: null}); 
+            }
+        }
+    });
 
-
-    res.render('chess', { mycolor: mycolor, username: username}); 
+    
 }
 
 
@@ -129,9 +143,9 @@ exports.receiveMove = (req, res, next) => {
                                     //console.log(req.session.username);
                                     sendScore(username, gameID, -1);
                                 }
-                                else{
+                                if(response.state === "tie"){
                                     sendScore(username, gameID, 0.5);
-                                }
+                                } 
                                 res.json({success: response.success, source: response.source, target: response.target, state: response.state});
                             }
                             else{

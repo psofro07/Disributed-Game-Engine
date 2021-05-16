@@ -13,6 +13,8 @@ service gameMaster {
     rpc getPracticeHistory(myUser) returns(practiceHistory);
     rpc createTournament(game) returns (newTourn);
     rpc getPlayers(tournament) returns (tournPlayers);
+    rpc deleteGame(myUser) returns (status);
+    rpc getOpponent(player) returns(opponent);
 }
 
 
@@ -120,4 +122,9 @@ message Player{
 message tournPlayers {
     repeated Player players = 1;
     bool success = 2;
+}
+
+message opponent {
+    bool success = 1;
+    string opponentUsername = 2;
 }

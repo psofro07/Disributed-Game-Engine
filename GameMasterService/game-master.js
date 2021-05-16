@@ -68,6 +68,49 @@ async function connectUser (call, callback) {
 }
 
 
+async function deleteGame(call, callback){
+
+    const username = call.request.username;
+
+    try {
+        const game = await Game.findOne({where: { player1: username } });
+
+        await Game.destroy({ where: {gameID: game.gameID}});
+
+        await removePlayer(username);
+    }
+    catch(error){
+        console.log(error);
+        callback(null, {success: false});
+    }
+
+}
+
+
+async function getOpponent(call, callback){
+
+    const username = call.request.username;
+    const gameID = call.request.gameID;
+
+    try {
+        const game = await Game.findOne({where: { gameID: gameID } });
+        let opponentUsername = game.player1;
+        if(game.player1 === username){
+            opponentUsername = game.player2;
+        }
+        
+        callback(null, {success: true, opponentUsername: opponentUsername});
+        
+    }
+    catch(error){
+        console.log(error);
+        callback(null, {success: false});
+    }
+
+}
+
+
+
 async function saveScore(call, callback){
 
     const username = call.request.username;
@@ -400,6 +443,20 @@ async function removePlayers(gameID, player1, player2) {
 }
 
 
+async function removePlayer(player1) {
+
+    try {
+        await Player.destroy({where: {username: player1}});
+
+        console.log("Removed player "+player1+" from matchmaking list");
+    }
+    catch(error){
+        console.log(error);
+    }
+    
+}
+
+
 async function createGame (username, type) {
 
     const newGame = await Game.create({gameID: uuidv4(), player1: username, game: "chess", player1Score: 0, player2Score: 0 , type: type}); 
@@ -423,7 +480,9 @@ server.addService(gameMasterPackage.gameMaster.service,
         "getScores": getScores,
         "getPracticeHistory": getPracticeHistory,
         "createTournament": createTournament,
-        "getPlayers": getPlayers
+        "getPlayers": getPlayers,
+        "deleteGame": deleteGame,
+        "getOpponent": getOpponent
     });
 
     //connect to db
