@@ -38,8 +38,6 @@ const maxPlayers = 8;
 
 
 // Check if the user exists in matchmaking 
-// * {string: username}
-// * {bool: success, string: username, string: text}
 async function connectUser (call, callback) {
 
     let username = call.request.username;
@@ -67,7 +65,7 @@ async function connectUser (call, callback) {
   
 }
 
-
+//delete game after the timeout for matchmaking has been reached
 async function deleteGame(call, callback){
 
     const username = call.request.username;
@@ -86,7 +84,7 @@ async function deleteGame(call, callback){
 
 }
 
-
+//return the name of the opponent for a play
 async function getOpponent(call, callback){
 
     const username = call.request.username;
@@ -110,7 +108,7 @@ async function getOpponent(call, callback){
 }
 
 
-
+//return the score of a play and save it into the GameList table of the SQL db
 async function saveScore(call, callback){
 
     const username = call.request.username;
@@ -139,8 +137,7 @@ async function saveScore(call, callback){
 }
 
 
-// * {string username, bool creator}
-// * {bool player1, bool gameFound,string gameId}
+//try to join an already existing play or create one
 async function joinGame (call, callback) {
 
     var username = call.request.username;
@@ -206,7 +203,7 @@ async function joinGame (call, callback) {
 
 
 
-
+//after the end of a play move the game from the GameList table and into the GameHistory table
 async function gameHistory(call, callback) {
 
     const gameID = call.request.gameID;
@@ -240,11 +237,13 @@ async function gameHistory(call, callback) {
             const score1 = game.player1Score;
             const score2 = game.player2Score;
 
+            //delete the game
             await Game.destroy({ where: {gameID: game.gameID}}, { transaction: t });
 
             // If the execution reaches this line, no errors were thrown.
             // We commit the transaction.
-
+            
+            //remove players from matchmaking list
             await removePlayers(gameID, player1, player2);
 
             await updateScorePractice(player1, player2, score1, score2);
@@ -266,7 +265,7 @@ async function gameHistory(call, callback) {
 
 }
 
-
+//after user registration initialize a score for the given username in SQL
 async function savePlayer(call, callback){
 
     const username = call.request.username;
@@ -286,7 +285,7 @@ async function savePlayer(call, callback){
 
 }
 
-
+//return the scores (practice and tournament) for a given player
 async function getScores(call, callback){
 
     const username = call.request.username;
@@ -302,7 +301,7 @@ async function getScores(call, callback){
     }
 }
 
-
+//return the practice history of the plays for a given user
 async function getPracticeHistory(call, callback){
 
     const username = call.request.username;
@@ -400,7 +399,7 @@ async function getPlayers (call, callback){
 
 }
 
-
+//update the score after each play for both users
 async function updateScorePractice(player1, player2, score1, score2){
 
     try {
@@ -427,7 +426,7 @@ async function updateScorePractice(player1, player2, score1, score2){
     
 }
 
-
+//remove the players from mathcmaking (after end of a play)
 async function removePlayers(gameID, player1, player2) {
 
     try {
@@ -442,7 +441,7 @@ async function removePlayers(gameID, player1, player2) {
     
 }
 
-
+//remove a single player from the matchmaking list after timeout is reached
 async function removePlayer(player1) {
 
     try {
@@ -456,7 +455,7 @@ async function removePlayer(player1) {
     
 }
 
-
+//create the game if none exists
 async function createGame (username, type) {
 
     const newGame = await Game.create({gameID: uuidv4(), player1: username, game: "chess", player1Score: 0, player2Score: 0 , type: type}); 
