@@ -2,30 +2,25 @@ const Sequelize = require('sequelize');
 
 const sequelize = require('../connection');
 
-const tournament = sequelize.define('Tournament', {
-    tournID: {
+const tPlayers = sequelize.define('TournamentPlayer', {
+    username: {
         type: Sequelize.STRING,
         autoIncrement: false,
         allowNull: false,
         primaryKey: true
     },
-    name: {
+    tournID: {
         type: Sequelize.STRING,
         allowNull: false,
-        defaultValue: "My first tournament",
         required: true
     },
-    official: {
-        type: Sequelize.STRING,
-        allowNull: false,
-    },
-    playersJoinded: {
+    round: {
         type: Sequelize.DataTypes.INTEGER,
-        defaultValue: 0
+        defaultValue: 1, 
     },
     status: {
-        type: Sequelize.DataTypes.ENUM('full', 'joinable', "in progress"),
-        defaultValue: 'joinable'
+        type: Sequelize.DataTypes.ENUM('won', 'lost', 'in game'),
+        defaultValue: 'in game'
     },
     type: {
         type: Sequelize.DataTypes.ENUM('chess', 'tic-tac-toe'),
@@ -34,4 +29,4 @@ const tournament = sequelize.define('Tournament', {
     }
 })
 
-module.exports = tournament;
+module.exports = tPlayers;

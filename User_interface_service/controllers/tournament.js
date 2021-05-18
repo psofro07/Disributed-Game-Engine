@@ -17,8 +17,9 @@ const clientGM = new gameMasterPackage.gameMaster("game-master:5000", grpc.crede
 exports.createTournament = (req, res, next) => {
 
     const gameType = req.params.gameType;
+    const username = req.session.username;
 
-    clientGM.createTournament({"gameType": gameType}, (err, response) => {
+    clientGM.createTournament({"gameType": gameType, "username": username}, (err, response) => {
         if(err) {
             console.log(err);
             return
@@ -27,9 +28,9 @@ exports.createTournament = (req, res, next) => {
 
             if(response.success === true){
                 //console.log(response.name);
-                const url = '/tournament/'+response.tournID+'?name='+response.name;
+                //const url = '/tournament/'+response.tournID+'?name='+response.name;
                 //console.log(response.tournID);
-                res.redirect(url);
+                res.redirect('tournamentList');
             }
             else{
                 console.log("GameMaster failed to create a Tournament");
@@ -41,16 +42,15 @@ exports.createTournament = (req, res, next) => {
 }
 
 
-exports.tournamentLobby = (req, res, next) => {
+exports.tournamentList = (req, res, next) => {
 
-    const tournID = req.params.tournID;
     const name = req.query.name;
     const role = req.session.role;
     const username = req.session.username;
     const practiceScore = req.session.practiceScore;
     const tournamentScore = req.session.tournamentScore;
 
-    res.render('tournament', {tournID: tournID, role: role, name: name, username: username, practiceScore: practiceScore, tournamentScore: tournamentScore });
+    res.render('tournament', { role: role, name: name, username: username, practiceScore: practiceScore, tournamentScore: tournamentScore });
 
 }
 

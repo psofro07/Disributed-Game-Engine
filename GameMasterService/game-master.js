@@ -31,6 +31,8 @@ const GameHistory = require('./config/models/history');
 
 const Tournament = require('./config/models/tournament');
 
+const TournamentPlayers = require('./config/models/tournamentPlayers');
+
 const maxPlayers = 8;
 
 // ------------------ postgresSQLDB------------------------------------//
@@ -360,13 +362,15 @@ async function getPracticeHistory(call, callback){
 
 
 async function createTournament(call, callback){
-    var gameType = call.request.gameType;
+    const gameType = call.request.gameType;
+    const username = call.request.username;
 
     try {
         const newTournament = await Tournament.create(
         {
             tournID: uuidv4(),
-            type: "chess"
+            official: username,
+            type: gameType
         });
 
         console.log("Created a Tournament with ID: "+newTournament.tournID);
@@ -384,57 +388,22 @@ async function createTournament(call, callback){
 async function joinTournament(call, callback){          //TODO: Concurrency
 
     const username = call.request.username;
+    const tournID = call.request.tournID;
+    const type = call.request.type;
 
     try {
         
-        const tour = await Tournament.findOne({where: {type: "chess", full: false}});
+        await TournamentPlayers.create({
+            username: username,
+            tournID: tournID,
+            type: type
+        })
+
+        const tour =  await Tournament.findOne({where: {tournID: tournID}});
+
+        await tour.update({playersJoined: tour.playersJoined+1});
           
-        if(tour !== null){
-            if(tour.player1 === "empty"){
-                await tour.update({player1: username});
-                console.log(username+" joined Tournament with ID: "+tour.tournID);
-                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
-            }
-            else if(tour.player2 === "empty"){
-                await tour.update({player2: username});
-                console.log(username+" joined Tournament with ID: "+tour.tournID);
-                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
-            }
-            else if(tour.player3 === "empty"){
-                await tour.update({player3: username});
-                console.log(username+" joined Tournament with ID: "+tour.tournID);
-                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
-            }
-            else if(tour.player4 === "empty"){
-                await tour.update({player4: username});
-                console.log(username+" joined Tournament with ID: "+tour.tournID);
-                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
-            }
-            else if(tour.player5 === "empty"){
-                await tour.update({player5: username});
-                console.log(username+" joined Tournament with ID: "+tour.tournID);
-                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
-            }
-            else if(tour.player6 === "empty"){
-                await tour.update({player6: username});
-                console.log(username+" joined Tournament with ID: "+tour.tournID);
-                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
-            }
-            else if(tour.player7 === "empty"){
-                await tour.update({player7: username});
-                console.log(username+" joined Tournament with ID: "+tour.tournID);
-                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
-            }
-            else{
-                await tour.update({player8: username, full: true});
-                console.log(username+" joined Tournament with ID: "+tour.tournID);
-                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
-            }
-        }
-        else{
-            console.log("All tournaments were full");
-            callback(null, {success: false});
-        }
+        callback(null, {success: true});
               
     } 
     catch (err) {
@@ -445,35 +414,6 @@ async function joinTournament(call, callback){          //TODO: Concurrency
 }
 
 
-async function getPlayers (call, callback){
-
-    const tournID = call.request.tournID;
-
-    try {
-
-        const getTournament = await Tournament.findOne({ where: {tournID: tournID}});
-
-        const players = {
-            player1: getTournament.player1,
-            player2: getTournament.player2,
-            player3: getTournament.player3,
-            player4: getTournament.player4,
-            player5: getTournament.player5,
-            player6: getTournament.player6,
-            player7: getTournament.player7,
-            player8: getTournament.player8,
-        }
-
-        //console.log(getTournament.tournID);
-        callback(null, {players: players, success: true});
-
-    } 
-    catch (err) {
-        console.log(err);
-        callback(null, {success: false});
-    }
-
-}
 
 
 //update the score after each play for both users
@@ -556,7 +496,6 @@ server.addService(gameMasterPackage.gameMaster.service,
         "getScores": getScores,
         "getPracticeHistory": getPracticeHistory,
         "createTournament": createTournament,
-        "getPlayers": getPlayers,
         "deleteGame": deleteGame,
         "getOpponent": getOpponent,
         "deletePlayer": deletePlayer,

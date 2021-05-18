@@ -12,7 +12,6 @@ service gameMaster {
     rpc getScores(myUser) returns (scores);
     rpc getPracticeHistory(myUser) returns(practiceHistory);
     rpc createTournament(game) returns (newTourn);
-    rpc getPlayers(tournament) returns (tournPlayers);
     rpc deleteGame(myUser) returns (status);
     rpc getOpponent(player) returns(opponent);
     rpc deletePlayer(myUser) returns (status);
@@ -105,6 +104,7 @@ message Game {
 
 message game {
     string gameType = 1;
+    string username = 2;
 }
 
 message newTourn {
