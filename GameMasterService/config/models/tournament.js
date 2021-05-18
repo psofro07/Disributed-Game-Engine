@@ -12,50 +12,60 @@ const tournament = sequelize.define('Tournament', {
     player1: {
         type: Sequelize.STRING,
         allowNull: false,
-        defaultValue: null,
+        defaultValue: "empty",
         required: true
     },
     player2: {
         type: Sequelize.STRING,
         allowNull: true,
-        defaultValue: null,
+        defaultValue: "tasos",
         required: true
     },
     player3: {
         type: Sequelize.STRING,
         allowNull: true,
-        defaultValue: null,
+        defaultValue: "sifis",
         required: true
     },
     player4: {
         type: Sequelize.STRING,
         allowNull: true,
-        defaultValue: null,
+        defaultValue: "pipis",
         required: true
     },
     player5: {
         type: Sequelize.STRING,
         allowNull: true,
-        defaultValue: null,
+        defaultValue: "kostas",
         required: true
     },
     player6: {
         type: Sequelize.STRING,
         allowNull: true,
-        defaultValue: null,
+        defaultValue: "giannis",
         required: true
     },
     player7: {
         type: Sequelize.STRING,
         allowNull: true,
-        defaultValue: null,
+        defaultValue: "nikos",
         required: true
     },
     player8: {
         type: Sequelize.STRING,
         allowNull: true,
-        defaultValue: null,
+        defaultValue: "empty",
         required: true
+    },
+    name: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: "My first tournament",
+        required: true
+    },
+    full: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
     },
     type: {
         type: Sequelize.DataTypes.ENUM('chess', 'tic-tac-toe'),

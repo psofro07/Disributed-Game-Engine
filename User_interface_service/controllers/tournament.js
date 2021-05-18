@@ -26,28 +26,34 @@ exports.createTournament = (req, res, next) => {
         else {  
 
             if(response.success === true){
-                console.log("GameMaster created a tournament!");
-                let url = '/tournament/'+response.tournID;
-                console.log(response.tournID);
+                //console.log(response.name);
+                const url = '/tournament/'+response.tournID+'?name='+response.name;
+                //console.log(response.tournID);
                 res.redirect(url);
             }
             else{
-                console.log("Playmaster failed to create a Tournament");
-                res.render('/')
+                console.log("GameMaster failed to create a Tournament");
+                res.redirect('/');
             }
         }
     });
 
 }
 
+
 exports.tournamentLobby = (req, res, next) => {
 
     const tournID = req.params.tournID;
+    const name = req.query.name;
     const role = req.session.role;
+    const username = req.session.username;
+    const practiceScore = req.session.practiceScore;
+    const tournamentScore = req.session.tournamentScore;
 
-    res.render('tournament', {tournID: tournID, role: role});
+    res.render('tournament', {tournID: tournID, role: role, name: name, username: username, practiceScore: practiceScore, tournamentScore: tournamentScore });
 
 }
+
 
 exports.getPlayers = (req, res, next) => {
     
@@ -56,17 +62,14 @@ exports.getPlayers = (req, res, next) => {
     clientGM.getPlayers({"tournID": tournID}, (err, response) => {
         if(err) {
             console.log(err);
-            return
         }
         else {  
 
             if(response.success === true){
-                console.log("Returned all players!");
-                //let url = '/tournament/'+response.tournID;
-                let players = response.players[0];
+                //console.log(response.players);
                 
                 res.json({success: true, players: response.players});
-                //res.redirect(url);
+
             }
             else{
                 console.log("Failed to fetch tournament players");
@@ -75,5 +78,32 @@ exports.getPlayers = (req, res, next) => {
             }
         }
     });
+}
+
+
+exports.joinTournament = (req, res, next) => {
+    
+    const username = req.session.username;
+
+    clientGM.joinTournament({"username": username}, (err, response) => {
+        if(err) {
+            console.log(err);
+        }
+        else {  
+
+            if(response.success === true){
+                //console.log(response.name);
+                const url = '/tournament/'+response.tournID+'?name='+response.name;
+                //console.log(response.tournID);
+                res.redirect(url);
+
+            }
+            else{
+                console.log("Could not connect to a tournament");
+                res.redirect('/');
+            }
+        }
+    });
+
 }
     

@@ -285,6 +285,25 @@ async function savePlayer(call, callback){
 
 }
 
+
+async function deletePlayer(call, callback){
+
+    const username = call.request.username;
+
+    try{
+
+        await PlayerScore.destroy({where: {username: username}});
+        console.log("User removed from "+username+" Game Master");
+        callback(null, {success: true});
+    }
+    catch(error){
+        console.log(error);
+        callback(null, {success: false});
+    }
+
+}
+
+
 //return the scores (practice and tournament) for a given player
 async function getScores(call, callback){
 
@@ -340,27 +359,83 @@ async function getPracticeHistory(call, callback){
 }
 
 
-async function createTournament (call, callback){
+async function createTournament(call, callback){
     var gameType = call.request.gameType;
 
     try {
         const newTournament = await Tournament.create(
         {
             tournID: uuidv4(),
-            player1: "empty",
-            player2: "empty",
-            player3: "empty",
-            player4: "empty",
-            player5: "empty",
-            player6: "empty",
-            player7: "empty",
-            player8: "empty",
             type: "chess"
         });
 
         console.log("Created a Tournament with ID: "+newTournament.tournID);
-        callback(null, {success: true, tournID: newTournament.tournID});
+        callback(null, {success: true, tournID: newTournament.tournID, name: newTournament.name});
 
+    } 
+    catch (err) {
+        console.log(err);
+        callback(null, {success: false});
+    }
+
+}
+
+
+async function joinTournament(call, callback){          //TODO: Concurrency
+
+    const username = call.request.username;
+
+    try {
+        
+        const tour = await Tournament.findOne({where: {type: "chess", full: false}});
+          
+        if(tour !== null){
+            if(tour.player1 === "empty"){
+                await tour.update({player1: username});
+                console.log(username+" joined Tournament with ID: "+tour.tournID);
+                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
+            }
+            else if(tour.player2 === "empty"){
+                await tour.update({player2: username});
+                console.log(username+" joined Tournament with ID: "+tour.tournID);
+                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
+            }
+            else if(tour.player3 === "empty"){
+                await tour.update({player3: username});
+                console.log(username+" joined Tournament with ID: "+tour.tournID);
+                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
+            }
+            else if(tour.player4 === "empty"){
+                await tour.update({player4: username});
+                console.log(username+" joined Tournament with ID: "+tour.tournID);
+                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
+            }
+            else if(tour.player5 === "empty"){
+                await tour.update({player5: username});
+                console.log(username+" joined Tournament with ID: "+tour.tournID);
+                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
+            }
+            else if(tour.player6 === "empty"){
+                await tour.update({player6: username});
+                console.log(username+" joined Tournament with ID: "+tour.tournID);
+                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
+            }
+            else if(tour.player7 === "empty"){
+                await tour.update({player7: username});
+                console.log(username+" joined Tournament with ID: "+tour.tournID);
+                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
+            }
+            else{
+                await tour.update({player8: username, full: true});
+                console.log(username+" joined Tournament with ID: "+tour.tournID);
+                callback(null, {success: true, tournID: tour.tournID, name: tour.name});
+            }
+        }
+        else{
+            console.log("All tournaments were full");
+            callback(null, {success: false});
+        }
+              
     } 
     catch (err) {
         console.log(err);
@@ -372,23 +447,24 @@ async function createTournament (call, callback){
 
 async function getPlayers (call, callback){
 
-    var tournID = call.request.tournID;
-
-    const getTournament = await Tournament.findOne({ where: {tournID: tournID}});
+    const tournID = call.request.tournID;
 
     try {
-        // let players = {
-        //     player1: getTournament.dataValues.player1,
-        //     player2: getTournament.dataValues.player2,
-        //     player3: getTournament.dataValues.player3,
-        //     player4: getTournament.dataValues.player4,
-        //     player5: getTournament.dataValues.player5,
-        //     player6: getTournament.dataValues.player6,
-        //     player7: getTournament.dataValues.player8,
-        //     player8: getTournament.dataValues.player9,
-        // }
 
-        console.log("Fetching all players");
+        const getTournament = await Tournament.findOne({ where: {tournID: tournID}});
+
+        const players = {
+            player1: getTournament.player1,
+            player2: getTournament.player2,
+            player3: getTournament.player3,
+            player4: getTournament.player4,
+            player5: getTournament.player5,
+            player6: getTournament.player6,
+            player7: getTournament.player7,
+            player8: getTournament.player8,
+        }
+
+        //console.log(getTournament.tournID);
         callback(null, {players: players, success: true});
 
     } 
@@ -398,6 +474,7 @@ async function getPlayers (call, callback){
     }
 
 }
+
 
 //update the score after each play for both users
 async function updateScorePractice(player1, player2, score1, score2){
@@ -481,7 +558,9 @@ server.addService(gameMasterPackage.gameMaster.service,
         "createTournament": createTournament,
         "getPlayers": getPlayers,
         "deleteGame": deleteGame,
-        "getOpponent": getOpponent
+        "getOpponent": getOpponent,
+        "deletePlayer": deletePlayer,
+        "joinTournament": joinTournament
     });
 
     //connect to db

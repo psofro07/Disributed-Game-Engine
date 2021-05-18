@@ -5,7 +5,7 @@
 
 <%- include('partials/header.ejs') %>
 
-    <h1>Tournament: <%= tournID %>  Lobby</h1>
+    <h1><%= name %>  Lobby</h1>
 
     <div class="tournament-container">
         <div class="tournament-headers">
@@ -46,6 +46,7 @@
           </ul>  
         </div>
       </div>
+	  
 
 <%- include('partials/footer.ejs') %>
 
@@ -55,12 +56,11 @@
 
     $(document).ready( function () {
         const tournID = '<%= tournID %>'
-        fillBrackets(tournID);
 
-        function fillBrackets(tournID) {
+		fillBrackets();
+		setInterval(fillBrackets, 5000);
 
-            
-            //alert(tournID)
+        function fillBrackets() {
 
             $.ajax({
                 url: "/tournament/players",
@@ -68,9 +68,17 @@
                 data: {tournID: tournID},
                 success: (data) => {
 
-                    console.log(data);
+                    //console.log(data);
                     if(data.success === true){
-                        console.log("Players returned!");
+						$('#br11').html(data.players.player1);
+						$('#br12').html(data.players.player2);
+						$('#br13').html(data.players.player3);
+						$('#br14').html(data.players.player4);
+						$('#br15').html(data.players.player5);
+						$('#br16').html(data.players.player6);
+						$('#br17').html(data.players.player7);
+						$('#br18').html(data.players.player8);
+						//console.log('yo');
                     }
                     else{
                         console.log("ERROR: Players NOT returned!");
