@@ -15,7 +15,11 @@ service gameMaster {
     rpc deleteGame(myUser) returns (status);
     rpc getOpponent(player) returns(opponent);
     rpc deletePlayer(myUser) returns (status);
-    rpc joinTournament(myUser) returns (newTourn);
+    rpc joinTournament(joinTour) returns (status);
+    rpc getTournamentList(myUser) returns (tournamentList);
+    rpc leaveTournament(joinTour) returns (status);
+    rpc getPlayerStatus(myUser) returns (playerStatus);
+    rpc deleteTournament(tournament) returns (status);
 }
 
 
@@ -136,4 +140,31 @@ message tournPlayers {
 message opponent {
     bool success = 1;
     string opponentUsername = 2;
+}
+
+message tournamentList {
+    bool success = 1;
+    repeated Tournament tourList = 2;
+}
+
+message Tournament {
+    string tournID = 1;
+    string name = 2;
+    string official = 3;
+    int64 playersJoined = 4;
+    string status = 5;
+    string type = 6;
+}
+
+message joinTour {
+    string tournID = 1;
+    string username = 2;
+
+}
+
+
+message playerStatus {
+    bool success = 1;
+    string status = 2;
+    string tournID = 3;
 }

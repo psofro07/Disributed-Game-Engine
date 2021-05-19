@@ -11,8 +11,16 @@ router.get('/official/:gameType', isValidated && isLoggedIn, tournamentControlle
 
 router.get('/tournamentList', isValidated && isLoggedIn, tournamentController.tournamentList);
 
-router.post('/tournament/players', isValidated && isLoggedIn, tournamentController.getPlayers);
+//router.post('/tournament/players', isValidated && isLoggedIn, tournamentController.getPlayers);
 
-router.get('/joinTournament', isValidated && isLoggedIn, tournamentController.joinTournament);
+router.post('/joinTournament', isValidated && isLoggedIn, tournamentController.joinTournament);
+
+router.post('/leaveTournament', isValidated && isLoggedIn, tournamentController.leaveTournament);
+
+router.post('/getTournamentList', isValidated && isLoggedIn, tournamentController.getTournamentList);
+
+router.get('/refreshTournamentList', isValidated && isLoggedIn, tournamentController.refreshTournamentList);
+
+router.post('/deleteTournament', isValidated && isLoggedIn, tournamentController.deleteTournament);
 
 module.exports = router;

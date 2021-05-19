@@ -19,7 +19,7 @@ const tournament = sequelize.define('Tournament', {
         type: Sequelize.STRING,
         allowNull: false,
     },
-    playersJoinded: {
+    playersJoined: {
         type: Sequelize.DataTypes.INTEGER,
         defaultValue: 0
     },

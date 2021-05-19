@@ -67,6 +67,7 @@ async function connectUser (call, callback) {
   
 }
 
+
 //delete game after the timeout for matchmaking has been reached
 async function deleteGame(call, callback){
 
@@ -322,6 +323,7 @@ async function getScores(call, callback){
     }
 }
 
+
 //return the practice history of the plays for a given user
 async function getPracticeHistory(call, callback){
 
@@ -361,6 +363,30 @@ async function getPracticeHistory(call, callback){
 }
 
 
+async function getPlayerStatus(call, callback){
+
+    const username = call.request.username;
+
+    try {
+        
+        const player = await TournamentPlayers.findOne({where: {username: username}});
+
+        if(player !== null){
+            callback(null, {success: true, status: player.status, tournID: player.tournID});
+        }
+        else{
+            callback(null, {success: true, status: '', tournID: ''});
+        }
+        
+        
+    } 
+    catch (err) {
+        console.log(err);
+        callback(null, {success: false});
+    }
+}
+
+
 async function createTournament(call, callback){
     const gameType = call.request.gameType;
     const username = call.request.username;
@@ -385,23 +411,99 @@ async function createTournament(call, callback){
 }
 
 
+async function deleteTournament(call, callback){
+
+    const tournID = call.request.tournID;
+
+    try {
+
+        const tour = await Tournament.findOne({where: {tournID: tournID}});
+        await tour.destroy();
+        console.log("Deleted a Tournament with ID: "+tour.tournID);
+
+        await TournamentPlayers.destroy({where: {tournID: tournID}});
+        console.log("Removed all players from this tournament");
+
+        callback(null, {success: true});
+
+    } 
+    catch (err) {
+        console.log(err);
+        callback(null, {success: false});
+    }
+
+}
+
+
+async function getTournamentList(call, callback){
+
+    try{
+        const tournaments = await Tournament.findAll();
+                                
+         
+        var tourList = [];
+        tournaments.forEach( tour => {
+            tourList.push({
+                tournID: tour.tournID,
+                name: tour.name,
+                official: tour.official,
+                playersJoined: tour.playersJoined,
+                status: tour.status,
+                type: tour.type
+            })
+        });
+        //console.log(tourList);  
+        callback(null, {success: true, tourList: tourList});
+    }
+    catch(error){
+        console.log(error);
+        callback(null, {success: false});
+    }
+
+}
+
+
 async function joinTournament(call, callback){          //TODO: Concurrency
 
     const username = call.request.username;
     const tournID = call.request.tournID;
-    const type = call.request.type;
 
     try {
         
         await TournamentPlayers.create({
             username: username,
             tournID: tournID,
-            type: type
         })
 
         const tour =  await Tournament.findOne({where: {tournID: tournID}});
 
         await tour.update({playersJoined: tour.playersJoined+1});
+
+        
+          
+        callback(null, {success: true});
+              
+    } 
+    catch (err) {
+        console.log(err);
+        callback(null, {success: false});
+    }
+
+}
+
+
+async function leaveTournament(call, callback){          //TODO: Concurrency
+
+    const username = call.request.username;
+    const tournID = call.request.tournID;
+
+    try {
+        
+        await TournamentPlayers.destroy({where: {username: username}});
+
+        const tour =  await Tournament.findOne({where: {tournID: tournID}});
+
+        await tour.update({playersJoined: tour.playersJoined-1});
           
         callback(null, {success: true});
               
@@ -499,7 +601,11 @@ server.addService(gameMasterPackage.gameMaster.service,
         "deleteGame": deleteGame,
         "getOpponent": getOpponent,
         "deletePlayer": deletePlayer,
-        "joinTournament": joinTournament
+        "joinTournament": joinTournament,
+        "getTournamentList": getTournamentList,
+        "leaveTournament": leaveTournament,
+        "getPlayerStatus": getPlayerStatus,
+        "deleteTournament": deleteTournament
     });
 
     //connect to db
@@ -517,6 +623,7 @@ server.addService(gameMasterPackage.gameMaster.service,
         .then( () => {
             Game.truncate();
             Player.truncate();
+            TournamentPlayers.truncate();
             Tournament.truncate();
         })
         .then( () => {

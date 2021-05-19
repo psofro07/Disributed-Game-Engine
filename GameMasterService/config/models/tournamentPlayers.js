@@ -19,14 +19,10 @@ const tPlayers = sequelize.define('TournamentPlayer', {
         defaultValue: 1, 
     },
     status: {
-        type: Sequelize.DataTypes.ENUM('won', 'lost', 'in game'),
-        defaultValue: 'in game'
-    },
-    type: {
-        type: Sequelize.DataTypes.ENUM('chess', 'tic-tac-toe'),
-        allowNull: false,
-        required: true
+        type: Sequelize.DataTypes.ENUM('won', 'lost', 'in game', 'in lobby'),
+        defaultValue: 'in lobby'
     }
+
 })
 
 module.exports = tPlayers;
