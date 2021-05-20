@@ -26,22 +26,26 @@
             <div id="8" data-cell-index="8" class="cell"></div>
         </div>
         <h2 class="game--status"></h2>
-        <button class="game--restart">Restart Game</button>
+        <!-- <button class="game--restart">Restart Game</button> -->
 
         <% if(mycolor === "X"){ %>
-            <div class="myusername"><%= username %> (white) </div>
-            <div class="opponent"><%= opponent %> (black) </div>
+            <div class="myusername"><h3><%= username %> (X) </h3></div>
+            <div class="opponent"><h3><%= opponent %> (O) </h3></div>
         <% } %> 
         <% if(mycolor === "O"){ %>
-            <div class="myusername"><%= username %> (black) </div>
-            <div class="opponent"><%= opponent %> (white) </div>
+            <div class="myusername"><h3><%= username %> (O)</h3></div>
+            <div class="opponent"><h3><%= opponent %> (X)</h3></div>
         <% } %> 
 
     </section>
+    <div id="winStatus"></div>
+	<div id="endButton"></div>
 <script>
 
     var mycolor = '<%= mycolor %>';
 	var serverTurn = 'X';
+    var gameEnded = false;
+    var endRounds = 0;
     console.log("INTIT "+mycolor+"  "+serverTurn);
 
 
@@ -72,11 +76,11 @@
     statusDisplay.innerHTML = currentPlayerTurn();
 
     function handleCellPlayed(clickedCell, clickedCellIndex) {
-        console.log("HELLO handleCellPlayed");
 
+        console.log("HELLO handleCellPlayed");
         gameState[clickedCellIndex] = serverTurn;
-        //clickedCell.innerHTML = currentPlayer;
         $('#'+clickedCellIndex).html(serverTurn);
+
         serverTurn = serverTurn === "X" ? "O" : "X";
     }
 
@@ -95,46 +99,17 @@
                 success: (data) => {
                     //console.log(data);
                     if (data.success === true) {
-                        // game.move({from: data.source, to: data.target, promotion: 'q'});
-                        // board.position(game.fen());
-                        console.log("Source: "+data.source+ "  Target: "+data.target);
-                        handleCellPlayed(data.source, data.target);
-                        //statusDisplay.innerHTML = currentPlayerTurn();  
-                        //currentPlayer = currentPlayer === "X" ? "O" : "X";
-                        
-                        if(data.state === "playing"){
-                            // if(mycolor === 'X'){
-                            //     serverTurn = 'X';
-                            // }
-                            // else{
-                            //     serverTurn = 'O';
-                            // }
 
-                        }
-                        else if(data.state === "checkmate"){
-                            // console.log("CHECKMATE MY MAN!");
-                            // $('#winStatus').html('<h1 class="gameLost">You lost!</h1>');
-                            // $('#endButton').html('<button id="homeButton" class="button">Home</button>');
-                            // $("#homeButton").onclick = () => {
-                            //     document.location.href="/";
-                            // };
+                        if (gameEnded === false){
+                            console.log("Source: "+data.source+ "  Target: "+data.target);
+                            handleCellPlayed(data.source, data.target);
 
-                            serverTurn = 'e';
-
-                            // updateStatus();
+                            handleResultValidation();
                         }
                         else{
-                            // $('#winStatus').html('<h1 class="gameWon">It is a tie!</h1>');
-                            // $('#endButton').html('<button id="homeButton" class="button">Home</button>');
-                            // $("#homeButton").onclick = () => {
-                            //     document.location.href="/";
-                            // };
-                            
-                            // serverTurn = 'e';
-
-                            // updateStatus();
-                        }
-                        handleResultValidation();				
+                            closeGame();
+                            return;
+                        }               				
                     }
                     else {
                         console.log("ERROR: Something went wrong!");
@@ -168,17 +143,31 @@
         }
 
         if (roundWon) {
-            statusDisplay.innerHTML = winningMessage();
+            //statusDisplay.innerHTML = winningMessage();
+            
+
+            if(serverTurn === mycolor){
+                $('#winStatus').html('<h1 class="gameWon">You won!</h1>');
+
+            }
+            else {
+                $('#winStatus').html('<h1 class="gameLost">You lost!</h1>');
+
+            }
+
+            
+            
             gameActive = false;
-            return;
+            //return;
         }
 
         let roundDraw = !gameState.includes("");
 
         if (roundDraw) {
-            statusDisplay.innerHTML = drawMessage();
+            //statusDisplay.innerHTML = drawMessage();
+
+            // $('#winStatus').html('<h1 class="gameTie">It is a tie!</h1>');
             gameActive = false;
-            return;
         }
 
         handlePlayerChange();
@@ -217,9 +206,9 @@
                         else{
                             serverTurn = 'X';
                         }
-                        //currentPlayer = currentPlayer === "X" ? "O" : "X";
+
                         handleResultValidation();
-                        //updateStatus();    
+ 
                     }
                     else {
                         console.log("ERROR: Something went wrong!");
@@ -232,44 +221,78 @@
     }
 
 
-    function handleRestartGame() {
-        gameActive = true;
-        currentPlayer = "X";
-        gameState = ["", "", "", "", "", "", "", "", ""];
-        statusDisplay.innerHTML = currentPlayerTurn();
-        document.querySelectorAll('.cell')
-            .forEach(cell => cell.innerHTML = "");
-    }
-
-
     document.querySelectorAll('.cell').forEach(cell => cell.addEventListener('click', handleCellClick));
-    //document.querySelector('.game--restart').addEventListener('click', handleRestartGame);
 
 
     if(mycolor === 'X' ){
-        console.log("MPHKA");
 		$.ajax({
 			url: "/game/initializeGame", 
 			method: "POST",
 			data: {},
 			success: (data) => {
-				//console.log(data);
 				if (data === true) {
-					console.log("Im X");
-					//updateStatus();    
+					console.log("Im X");   
 				}
 				else {
 					console.log("ERROR: Failed to init!");
-				}
-			
+				}	
 			}
 		});
 	}
     else {
-        console.log("DEN MPHKA");
         handlePlayerChange();
     }
 
+    $(document).on('click', '#homeButton', function(){ 
+		document.location.href="/";
+		return res.redirect("/");
+	});
+
+    function sendWin() {
+
+        $.ajax({
+            url: "/game/endGame", 
+            method: "POST",
+            data: {state: "checkmate", score: 1},
+            success: (data) => {
+                // //console.log(data);
+                if (data.success === true) {
+                    console.log("I won!");
+                    console.log("Sending ending move");
+                }
+                else {
+                    console.log("ERROR in endgame: did not send win!");
+                }
+            
+            }
+        });
+    }
+
+    function getLoss() {
+
+        $.ajax({
+            url: "/game/receiveMove", 
+            method: "POST",
+            data: {},
+            success: (data) => {
+                //console.log(data);
+                if (data.success === true) {
+                    console.log("Recieved loss");				
+                }
+                else {
+                    console.log("ERROR in endgame: did not get loss!");
+                }
+            }
+        });
+    }
+
+    function closeGame() {
+        gameActive = false;
+        $('#endButton').html('<button id="homeButton" class="button">Home</button>');
+        $("#homeButton").onclick = () => {
+            document.location.href="/";
+        };
+    }
 
 
 </script>
