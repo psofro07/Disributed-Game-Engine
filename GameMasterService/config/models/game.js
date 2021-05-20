@@ -11,7 +11,7 @@ const game = sequelize.define('GameList', {
     },
     player1: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
         required: true
     },
     player2: {
@@ -38,9 +38,14 @@ const game = sequelize.define('GameList', {
         required: true
     },
     type: {
-        type: Sequelize.DataTypes.ENUM('practice', 'tournament play'),
+        type: Sequelize.DataTypes.ENUM('practice', 'tournament'),
         allowNull: false,
         required: true
+    },
+    tournID: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        default: null
     }
 })
 

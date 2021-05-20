@@ -188,23 +188,32 @@ exports.refreshTournamentList = (req, res, next) => {
     
     const username = req.session.username;
 
-    clientGM.getPlayerStatus({"username": username}, (err, response) => {
-        if(err) {
-            console.log(err);
-        }
-        else {  
+    if(req.session.role === 'Official'){
+        
+        res.json({role: req.session.role});
+    }
+    else{
 
-            if(response.success === true){
-
-                res.json({status: response.status, tournID: response.tournID});
-
+        clientGM.getPlayerStatus({"username": username}, (err, response) => {
+            if(err) {
+                console.log(err);
             }
-            else{
-                
-                console.log("Could not get player status");
+            else {  
+    
+                if(response.success === true){
+                    
+                    res.json({role: req.session.role, status: response.status, tournID: response.tournID, tournStatus: response.tournStatus});
+    
+                }
+                else{
+                    
+                    console.log("Could not get player status");
+                }
             }
-        }
-    })
+        })
+    }
+
+    
 
 }
 
@@ -226,6 +235,36 @@ exports.deleteTournament = (req, res, next) => {
             }
             else{
                 console.log("Could not delete the tournament");
+            }
+        }
+    });
+
+}
+
+
+exports.tournamentMatchmake = (req, res, next) => {
+    
+    const username = req.session.username;
+    const tournID = req.params.tournID;
+
+    clientGM.tournamentMatchmake({"tournID": tournID, "username": username}, (err, response) => {
+        if(err) {
+            console.log(err);
+        }
+        else {  
+            if(response.success === true){
+
+                req.session.player = response.playerNumber;
+                req.session.gameID = response.gameID;
+
+                setTimeout(function(){
+                    res.redirect('/game/chess');
+                }, 1000);
+
+            }
+            else{
+                console.log("Could not join a tournament play");
+                res.redirect('/');
             }
         }
     });

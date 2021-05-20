@@ -43,19 +43,34 @@
 				method: "GET",
 				data: {},
 				success: (data) => {
-					console.log(data.status);
-					if(data.status === 'in lobby'){
-						createTable("leave", data.tournID);
+					//console.log(data.status);
+					if(data.role === 'Official'){
+						updateTable('', '');
 					}
 					else{
-						createTable("join", null);
-					}				
+						if(data.tournStatus === 'joinable'){
+							updateTable("leave", data.tournID);
+								
+						}
+						else if(data.tournStatus === 'full'){
+							updateTable("leave", data.tournID);
+							//code before the pause
+							setTimeout(function(){
+								window.location = '/tournamentMatchmake/'+data.tournID;
+							}, 2000);
+							
+						}
+						else{
+							updateTable("join", null);
+						}
+					}
+								
 				}
 			});
 		}
         
 
-        function createTable(button, tournID) {
+        function updateTable(button, tournID) {
 
             $.ajax({
                 url: "/getTournamentList", 
@@ -64,6 +79,7 @@
                 success: (data) => {
                     //console.log(data);
                     $('#tourTable').html(data.data);
+
 					if(button === 'leave'){
 						// $("button#"+tournID).css("display", "none");
 						// alert();
@@ -79,7 +95,9 @@
 							})
 
 						})
-					}	
+					}
+					
+					
                 }
             });
 
@@ -99,7 +117,7 @@
 					data: {tournID: tournID},
 					success: (data) => {
 
-						createTable("leave", tournID);
+						updateTable("leave", tournID);
 
 
 					}
@@ -116,7 +134,7 @@
 					data: {tournID: tournID},
 					success: (data) => {
 
-						createTable("join", tournID);
+						updateTable("join", tournID);
 
 
 					}

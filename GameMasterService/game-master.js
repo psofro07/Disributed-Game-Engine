@@ -159,7 +159,7 @@ async function joinGame (call, callback) {
             const game = await Game.findOne({where: { player2: null } });
 
             if(!game){
-                let gameID = await createGame(username, "practice");
+                let gameID = await createGame(username, "practice", '');
                 console.log("All games were full, user: " + username + " created game: "+ gameID);     
                 callback(null, {gameCreator: true, gameFound: false});  
             }
@@ -177,7 +177,7 @@ async function joinGame (call, callback) {
         else {
 
             // No games, create one
-            let gameID = await createGame(username, "practice");
+            let gameID = await createGame(username, "practice", '');
     
             console.log("User: " + username + " created game: "+ gameID); 
             callback(null, {gameCreator: true, gameFound: false});
@@ -239,6 +239,7 @@ async function gameHistory(call, callback) {
             const player2 = game.player2;
             const score1 = game.player1Score;
             const score2 = game.player2Score;
+            const type = game.type;
 
             //delete the game
             await Game.destroy({ where: {gameID: game.gameID}}, { transaction: t });
@@ -249,7 +250,9 @@ async function gameHistory(call, callback) {
             //remove players from matchmaking list
             await removePlayers(gameID, player1, player2);
 
-            await updateScorePractice(player1, player2, score1, score2);
+            if(type === 'prcatice'){
+                await updateScorePractice(player1, player2, score1, score2);
+            }
 
             await t.commit();
 
@@ -397,10 +400,11 @@ async function getPlayerStatus(call, callback){
         const player = await TournamentPlayers.findOne({where: {username: username}});
 
         if(player !== null){
-            callback(null, {success: true, status: player.status, tournID: player.tournID});
+            const tour = await Tournament.findOne({where: {tournID: player.tournID}});
+            callback(null, {success: true, status: player.status, tournID: player.tournID, tournStatus: tour.status});
         }
         else{
-            callback(null, {success: true, status: '', tournID: ''});
+            callback(null, {success: true, status: '', tournID: '', tournStatus: ''});
         }
         
         
@@ -505,6 +509,11 @@ async function joinTournament(call, callback){          //TODO: Concurrency
         await tour.update({playersJoined: tour.playersJoined+1});
 
         if(tour.playersJoined === maxPlayers){
+            let i;
+            for (i = 0; i < maxPlayers/2; i++) {
+                await createGame(null, 'tournament', tour.tournID);
+            }
+            
             await tour.update({status: "full"});
         }
           
@@ -534,6 +543,7 @@ async function leaveTournament(call, callback){          //TODO: Concurrency
 
         if(tour.playersJoined !== maxPlayers){
             await tour.update({status: "joinable"});
+            await Game.destroy({where: {tournID: tournID}});
         }
           
         callback(null, {success: true});
@@ -547,6 +557,71 @@ async function leaveTournament(call, callback){          //TODO: Concurrency
 }
 
 
+async function tournamentMatchmake(call, callback){          //TODO: Concurrency
+
+    const username = call.request.username;
+    const tournID = call.request.tournID;
+
+
+    const t = await sequelize.transaction();
+
+    try {
+
+        const game = await Game.findOne({
+            where: sequelize.and(
+                { tournID: tournID }, 
+                    sequelize.or(
+                        { player1: null },
+                        { player2: null }
+                    )
+            )
+        });
+
+        if(game !== null){
+            if(game.player1 === null){
+                await game.update({player1: username}, { transaction: t })
+            }
+            else{
+                await game.update({player2: username}, { transaction: t })
+            }
+
+            await t.commit();
+
+            const playerNumber = await getPlayerNumber(game.gameID, username);
+            //console.log(playerNumber);
+            callback(null, {success: true, gameID: game.gameID, playerNumber: playerNumber});
+        }
+        else{
+            callback(null, {success: false});
+        }
+              
+    } 
+    catch (err) {
+        await t.rollback();
+        console.log(err);
+        callback(null, {success: false});
+    }
+
+}
+
+
+async function getPlayerNumber(gameID, username){
+
+    try {
+        const game = await Game.findOne({where: {gameID: gameID}});
+
+        if(username === game.player1){
+            return 'player1';
+        }
+        else{
+            return 'player2';
+        }
+    }
+    catch(error) {
+        console.log(error);
+    }
+
+}
 
 
 //update the score after each play for both users
@@ -605,10 +680,19 @@ async function removePlayer(player1) {
     
 }
 
-//create the game if none exists
-async function createGame (username, type) {
 
-    const newGame = await Game.create({gameID: uuidv4(), player1: username, game: "chess", player1Score: 0, player2Score: 0 , type: type}); 
+//create the game if none exists
+async function createGame (username, type, tournID) {
+
+    var newGame;
+
+    if(type === 'tournament'){
+        newGame = await Game.create({gameID: uuidv4(), player1: username, game: "chess", player1Score: 0, player2Score: 0 , type: type, tournID: tournID}); 
+    }
+    else{
+        newGame = await Game.create({gameID: uuidv4(), player1: username, game: "chess", player1Score: 0, player2Score: 0 , type: type}); 
+    }
+    
         
     console.log("Game created with ID: "+newGame.gameID);
     return newGame.gameID;
@@ -637,7 +721,8 @@ server.addService(gameMasterPackage.gameMaster.service,
         "leaveTournament": leaveTournament,
         "getPlayerStatus": getPlayerStatus,
         "deleteTournament": deleteTournament,
-        "leaderboards": leaderboards
+        "leaderboards": leaderboards,
+        "tournamentMatchmake": tournamentMatchmake
     });
 
     //connect to db
@@ -657,6 +742,18 @@ server.addService(gameMasterPackage.gameMaster.service,
             Player.truncate();
             TournamentPlayers.truncate();
             Tournament.truncate();
+            Tournament.create(
+                {
+                    tournID: uuidv4(),
+                    official: 'Thanos',
+                    type: 'chess'
+            });
+            Tournament.create(
+                {
+                    tournID: uuidv4(),
+                    official: 'Thanos',
+                    type: 'chess'
+            });
         })
         .then( () => {
             
