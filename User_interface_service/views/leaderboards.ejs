@@ -1,0 +1,60 @@
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+	  integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+	  crossorigin="anonymous">
+</script>
+
+<%- include('partials/header.ejs') %>
+
+<div id="editStatus"></div>
+<div class="tablePos">
+    <table class="admtable table">
+		<thead>
+			<tr>
+			<th scope="col">#</th>
+			<th scope="col">Username</th>
+			<th scope="col">Practice Score by</th>
+			<th scope="col">Tournament score</th>
+			</tr>
+		</thead>
+		
+
+		<tbody id="leadTable">
+			
+		</tbody>
+
+  </table>
+</div>
+
+<%- include('partials/footer.ejs') %>
+
+<script> 
+
+    $(document).ready(function () {
+
+		updateTable();
+		setInterval(updateTable, 2000);
+		
+        function updateTable() {
+
+            $.ajax({
+                url: "/getLeaderboards", 
+                method: "GET",
+                data: {},
+                success: (data) => {
+                    //console.log(data);
+                    $('#leadTable').html(data.data);
+					
+                }
+            });
+
+        }
+
+
+	});
+</script>
+
+    
+
+  
+
+

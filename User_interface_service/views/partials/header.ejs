@@ -9,7 +9,7 @@
     rel="stylesheet" 
     integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" 
     crossorigin="anonymous">
-    <link href="../../css/header.css" rel="stylesheet">
+    <!-- <link href="../../css/header.css" rel="stylesheet"> -->
 </head>
 
 
@@ -35,6 +35,9 @@
                     <a class="nav-link" href="/admin">Admin</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link"> <%= username %> </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="http://localhost:3000/logout">Logout</a>
                 </li>
             <% } %> 
@@ -48,6 +51,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/tournamentList">Tournament List</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/leaderboards">Leaderboards</a>
+                </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     Practice play
@@ -57,11 +63,15 @@
                     <li><a class="dropdown-item" href="#">tic tac toe</a></li>
                     </ul>
                 </li>
+                
                 <li class="nav-item">
                     <a class="nav-link"> Practice score: <%= practiceScore %> </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link">Tournament Score: <%= tournamentScore %></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"> <%= username %> </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="http://localhost:3000/logout">Logout</a>
@@ -83,6 +93,9 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">Tournament Scores</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"> <%= username %> </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="http://localhost:3000/logout">Logout</a>

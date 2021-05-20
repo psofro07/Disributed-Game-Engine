@@ -1,9 +1,23 @@
 const axios = require('axios');
 
+const grpc = require("grpc");
+// protoLoader used for compilation of proto file into JS.
+const protoLoader = require("@grpc/proto-loader");
+const { response } = require("express");
+// Load synchronously.
+const packageDefGM = protoLoader.loadSync("gameMaster.proto", {});
+// Load package definition into Object.
+const grpcObjectGM = grpc.loadPackageDefinition(packageDefGM);
+// Create package from object.
+const gameMasterPackage = grpcObjectGM.gameMasterPackage;
+
+const clientGM = new gameMasterPackage.gameMaster("game-master:5000", grpc.credentials.createInsecure());
+
+
 
 exports.getAdmin = (req, res, next) => {
 
-    res.render('admin',{role: req.session.role});
+    res.render('admin',{role: req.session.role, username: req.session.username});
     
 }
 
@@ -95,8 +109,11 @@ exports.deleteTable = (req, res, next) => {
     };
     
     axios(config)
-        .then(function (response) {
+        .then(async function (response) {
             console.log(response.data.message);
+
+            await deleteUser(username);
+
             res.json({success: true})
         })
         .catch(function (error) {
@@ -105,5 +122,16 @@ exports.deleteTable = (req, res, next) => {
         });
   
     
+}
+
+
+
+async function deleteUser(username){
+
+    clientGM.deletePlayer({"username": username}, (err, response) => {
+        if(err) {
+            console.log(err);
+        }
+    })
 }
 

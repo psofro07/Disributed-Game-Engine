@@ -83,7 +83,7 @@ exports.getTournamentList = (req, res, next) => {
                                     '<td style="display:none;">'+tournID+'</td>'+
                                     '<td>'+name+'</td>'+
                                     '<td>'+official+'</td>'+
-                                    '<td>'+playersJoined+'/8</td>'+
+                                    '<td>'+playersJoined+'/4</td>'+
                                     '<td>'+status+'</td>'+
                                     '<td>'+type+'</td>'+
                                     '<td>'+ 
@@ -99,7 +99,7 @@ exports.getTournamentList = (req, res, next) => {
                                     '<td style="display:none;">'+tournID+'</td>'+
                                     '<td>'+name+'</td>'+
                                     '<td>'+official+'</td>'+
-                                    '<td>'+playersJoined+'/8</td>'+
+                                    '<td>'+playersJoined+'/4</td>'+
                                     '<td>'+status+'</td>'+
                                     '<td>'+type+'</td>'+
                                     '<td>'+ 

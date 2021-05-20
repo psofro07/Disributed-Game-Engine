@@ -33,7 +33,7 @@ const Tournament = require('./config/models/tournament');
 
 const TournamentPlayers = require('./config/models/tournamentPlayers');
 
-const maxPlayers = 8;
+const maxPlayers = 4;
 
 // ------------------ postgresSQLDB------------------------------------//
 
@@ -255,7 +255,7 @@ async function gameHistory(call, callback) {
 
             callback(null, {success: true});
 
-        } catch (error) {
+        }catch(error) {
 
             console.log(error);
             // If the execution reaches this line, an error was thrown.
@@ -267,6 +267,31 @@ async function gameHistory(call, callback) {
     }
 
 }
+
+
+async function leaderboards(call, callback){
+
+    try{
+        const players = await PlayerScore.findAll();                                
+         
+        var playerList = [];
+        players.forEach( player => {
+            playerList.push({
+                username: player.username,
+                practiceScore: player.practiceScore,
+                tournamentScore: player.tournamentScore,
+            })
+        });
+
+        //console.log(tourList);  
+        callback(null, {success: true, playerList: playerList});
+    }
+    catch(error){
+        console.log(error);
+        callback(null, {success: false});
+    }
+}
+
 
 //after user registration initialize a score for the given username in SQL
 async function savePlayer(call, callback){
@@ -296,7 +321,7 @@ async function deletePlayer(call, callback){
     try{
 
         await PlayerScore.destroy({where: {username: username}});
-        console.log("User removed from "+username+" Game Master");
+        console.log("User "+username+" removed from Game Master");
         callback(null, {success: true});
     }
     catch(error){
@@ -479,7 +504,9 @@ async function joinTournament(call, callback){          //TODO: Concurrency
 
         await tour.update({playersJoined: tour.playersJoined+1});
 
-        
+        if(tour.playersJoined === maxPlayers){
+            await tour.update({status: "full"});
+        }
           
         callback(null, {success: true});
               
@@ -504,6 +531,10 @@ async function leaveTournament(call, callback){          //TODO: Concurrency
         const tour =  await Tournament.findOne({where: {tournID: tournID}});
 
         await tour.update({playersJoined: tour.playersJoined-1});
+
+        if(tour.playersJoined !== maxPlayers){
+            await tour.update({status: "joinable"});
+        }
           
         callback(null, {success: true});
               
@@ -605,7 +636,8 @@ server.addService(gameMasterPackage.gameMaster.service,
         "getTournamentList": getTournamentList,
         "leaveTournament": leaveTournament,
         "getPlayerStatus": getPlayerStatus,
-        "deleteTournament": deleteTournament
+        "deleteTournament": deleteTournament,
+        "leaderboards": leaderboards
     });
 
     //connect to db

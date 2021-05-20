@@ -20,6 +20,7 @@ service gameMaster {
     rpc leaveTournament(joinTour) returns (status);
     rpc getPlayerStatus(myUser) returns (playerStatus);
     rpc deleteTournament(tournament) returns (status);
+    rpc leaderboards(myUser) returns (playerScores);
 }
 
 
@@ -162,9 +163,19 @@ message joinTour {
 
 }
 
-
 message playerStatus {
     bool success = 1;
     string status = 2;
     string tournID = 3;
+}
+
+message playerScores {
+    bool success = 1;
+    repeated Score playerList = 2;
+}
+
+message Score {
+    string username = 1;
+    float practiceScore = 2;
+    float tournamentScore = 3;
 }
