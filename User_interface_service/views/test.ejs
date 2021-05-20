@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Tic Tac Toe</title>
+    <link href="../../css/tic-tac-toe.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+	integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+	crossorigin="anonymous"></script>
+</head>
+<body>
+    <section>
+        <h1 class="game--title">Tic Tac Toe</h1>
+        <div class="game--container">
+            <div id="0" data-cell-index="0" class="cell"></div>
+            <div id="1" data-cell-index="1" class="cell"></div>
+            <div id="2" data-cell-index="2" class="cell"></div>
+            <div id="3" data-cell-index="3" class="cell"></div>
+            <div id="4" data-cell-index="4" class="cell"></div>
+            <div id="5" data-cell-index="5" class="cell"></div>
+            <div id="6" data-cell-index="6" class="cell"></div>
+            <div id="7" data-cell-index="7" class="cell"></div>
+            <div id="8" data-cell-index="8" class="cell"></div>
+        </div>
+        <h2 class="game--status"></h2>
+        <button class="game--restart">Restart Game</button>
+    </section>
+
+    <script>
+
+const statusDisplay = document.querySelector('.game--status');
+
+let gameActive = true;
+let currentPlayer = "X";
+let gameState = ["", "", "", "", "", "", "", "", ""];
+
+const winningMessage = () => `Player ${currentPlayer} has won!`;
+const drawMessage = () => `Game ended in a draw!`;
+const currentPlayerTurn = () => `It's ${currentPlayer}'s turn`;
+
+statusDisplay.innerHTML = currentPlayerTurn();
+
+const winningConditions = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+];
+
+function handleCellPlayed(clickedCell, clickedCellIndex) {
+    gameState[clickedCellIndex] = currentPlayer;
+    console.log(clickedCellIndex);
+    //clickedCell.innerHTML = currentPlayer;
+    $('#'+clickedCellIndex).html(currentPlayer);
+}
+
+function handlePlayerChange() {
+    currentPlayer = currentPlayer === "X" ? "O" : "X";
+    statusDisplay.innerHTML = currentPlayerTurn();
+}
+
+function handleResultValidation() {
+    let roundWon = false;
+    for (let i = 0; i <= 7; i++) {
+        const winCondition = winningConditions[i];
+        let a = gameState[winCondition[0]];
+        let b = gameState[winCondition[1]];
+        let c = gameState[winCondition[2]];
+        if (a === '' || b === '' || c === '') {
+            continue;
+        }
+        if (a === b && b === c) {
+            roundWon = true;
+            break
+        }
+    }
+
+    if (roundWon) {
+        statusDisplay.innerHTML = winningMessage();
+        gameActive = false;
+        return;
+    }
+
+    let roundDraw = !gameState.includes("");
+    if (roundDraw) {
+        statusDisplay.innerHTML = drawMessage();
+        gameActive = false;
+        return;
+    }
+
+    handlePlayerChange();
+}
+
+function handleCellClick(clickedCellEvent) {
+    const clickedCell = clickedCellEvent.target;
+    const clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'));
+
+    if (gameState[clickedCellIndex] !== "" || !gameActive) {
+        return;
+    }
+
+    handleCellPlayed(clickedCell, clickedCellIndex);
+    handleResultValidation();
+}
+
+function handleRestartGame() {
+    gameActive = true;
+    currentPlayer = "X";
+    gameState = ["", "", "", "", "", "", "", "", ""];
+    statusDisplay.innerHTML = currentPlayerTurn();
+    document.querySelectorAll('.cell').forEach(cell => cell.innerHTML = "");
+}
+
+document.querySelectorAll('.cell').forEach(cell => cell.addEventListener('click', handleCellClick));
+document.querySelector('.game--restart').addEventListener('click', handleRestartGame);
+
+</script>
+
+</body>
+</html>

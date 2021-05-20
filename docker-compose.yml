@@ -45,8 +45,8 @@ services:
       - "27017:27017"
     networks:
      - net1
-    logging:
-      driver: none
+    # logging:
+    #   driver: none
 
   postgres-gamemaster:
     container_name: sql-gamemaster

@@ -41,7 +41,7 @@ app.get('/', (req, res) => {
 })
 
 app.get('/ho', (req, res) => {
-  res.render('chess', {myColor: 'w'});
+  res.render('test');
 })
 
 
