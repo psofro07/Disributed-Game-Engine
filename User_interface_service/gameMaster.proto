@@ -21,7 +21,10 @@ service gameMaster {
     rpc getPlayerStatus(myUser) returns (playerStatus);
     rpc deleteTournament(tournament) returns (status);
     rpc leaderboards(myUser) returns (playerScores);
-    rpc tournamentMatchmake(joinTour) returns (match);
+    //rpc tournamentMatchmake(joinTour) returns (match);
+    rpc joinGameTournament(playTournament) returns(playTourRDY);
+    rpc continueTournament(myUser) returns (wait);
+    rpc removePlayerTournament(myUser) returns(status);
 }
 
 
@@ -161,7 +164,6 @@ message Tournament {
 message joinTour {
     string tournID = 1;
     string username = 2;
-
 }
 
 message playerStatus {
@@ -186,4 +188,23 @@ message match {
     bool success = 1;
     string gameID = 2;
     string playerNumber = 3;
+}
+
+message playTournament{
+    bool gameCreator = 1;
+    string tournID = 2;
+    string username = 3;
+}
+
+message playTourRDY {
+    bool gameCreator = 1;
+    bool gameFound = 2;
+    string gameId = 3;
+    bool success = 4;
+}
+
+message wait {
+    bool success = 1;
+    bool finished = 2;
+    string tournID = 3;
 }

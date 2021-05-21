@@ -19,6 +19,8 @@ const {v4 : uuidv4} = require("uuid");
 // ------------------- GRPC --------------------------------------//
 
 // ------------------ postgresSQLDB ------------------------------------//
+const Sequelize = require('sequelize');
+
 const sequelize = require('./config/connection');
 
 const Game = require('./config/models/game');
@@ -32,6 +34,7 @@ const GameHistory = require('./config/models/history');
 const Tournament = require('./config/models/tournament');
 
 const TournamentPlayers = require('./config/models/tournamentPlayers');
+const { transaction } = require("./config/connection");
 
 const maxPlayers = 4;
 
@@ -204,6 +207,128 @@ async function joinGame (call, callback) {
     }
 }
 
+
+//try to join an already existing play or create one
+async function joinGameTournament (call, callback) {
+
+    const username = call.request.username;
+    const gameCreator = call.request.gameCreator;
+    const tournID = call.request.tournID;
+
+    const t = await sequelize.transaction({isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE});
+
+    try{
+        if(gameCreator === false){
+            
+            const game = await Game.findOne({where: { player2: null, tournID: tournID }, transaction: t, lock: t.LOCK });
+            
+            if(game){
+                await game.update({ player2: username }, { transaction: t, lock: t.LOCK  });
+                await TournamentPlayers.update({status: 'in game'}, {where: {username: username}});
+                gameJoined = game.gameID;
+                console.log("User: "+username+ " joined game! "+gameJoined);
+                callback(null, {success: true, gameCreator: false, gameFound: true, gameId: gameJoined});   
+            }
+            else {
+                // No games, create one
+                const game = await Game.create({gameID: uuidv4(), player1: username, game: "chess", player1Score: 0, player2Score: 0 , type: "tournament", tournID: tournID}, { transaction: t, lock: t.LOCK  });
+                console.log("User: " + username + " created game: "+ game.gameID);
+                callback(null, {success: true, gameCreator: true, gameFound: false});
+            }    
+
+            
+        }
+        else{
+    
+            // Check if someone joined your game
+            const game = await Game.findOne({where: {player1: username}});
+
+            if(game.player2 === null){
+                // No opponent found yet
+                console.log("Game not found for: "+username +" yet.");
+                callback(null, {success: true, gameCreator: true, gameFound: false});
+            }
+            else{
+                // Matchmaking complete
+                console.log("User: "+ username +" found a game! "+game.gameID);
+                await TournamentPlayers.update({status: 'in game'}, {where: {username: username}});  
+                callback(null, {success: true, gameCreator: true, gameFound: true, gameId: game.gameID}); 
+            }
+            
+                
+        }
+
+        await t.commit();
+        
+    }
+    catch(error){
+        await t.rollback();
+        console.log('error from '+username);
+        callback(null, {success: false});
+        
+    }  
+    
+}
+
+
+// //try to join an already existing play or create one
+// async function joinGameTournament (call, callback) {
+
+//     const username = call.request.username;
+//     const gameCreator = call.request.gameCreator;
+//     const tournID = call.request.tournID;
+
+//     try{
+
+//         await sequelize.transaction( async t => {
+
+//             if(gameCreator === false){
+            
+//                 const game = await Game.findOne({where: { player2: null, tournID: tournID } }, {transaction: t});
+                
+//                 if(game){
+//                     await game.update({ player2: username }, { transaction });
+//                     await TournamentPlayers.update({status: 'in game'}, {where: {username: username}}, { transaction: t });
+//                     gameJoined = game.gameID;
+//                     console.log("User: "+username+ " joined game! "+gameJoined);
+//                     callback(null, {success: true, gameCreator: false, gameFound: true, gameId: gameJoined});   
+//                 }
+//                 else {
+//                     // No games, create one
+//                     const game = await Game.create({gameID: uuidv4(), player1: username, game: "chess", player1Score: 0, player2Score: 0 , type: "tournament", tournID: tournID}, { transaction: t });
+//                     console.log("User: " + username + " created game: "+ game.gameID);
+//                     callback(null, {success: true, gameCreator: true, gameFound: false});
+//                 }    
+
+                
+//             }
+//             else{
+        
+//                 // Check if someone joined your game
+//                 const game = await Game.findOne({where: {player1: username}}, {transaction: t});
+    
+//                 if(game.player2 === null){
+//                     // No opponent found yet
+//                     console.log("Game not found for: "+username +" yet.");
+//                     callback(null, {success: true, gameCreator: true, gameFound: false});
+//                 }
+//                 else{
+//                     // Matchmaking complete
+//                     console.log("User: "+ username +" found a game! "+game.gameID);
+//                     await TournamentPlayers.update({status: 'in game'}, {where: {username: username}}, { transaction: t });  
+//                     callback(null, {success: true, gameCreator: true, gameFound: true, gameId: game.gameID}); 
+//                 }   
+                    
+//             }
+//         });
+//     }
+//     catch(error){
+//         console.log('error from '+username);
+//         callback(null, {success: false});
+        
+//     }  
+    
+// }
 
 
 //after the end of a play move the game from the GameList table and into the GameHistory table
@@ -492,6 +617,58 @@ async function getTournamentList(call, callback){
 }
 
 
+async function continueTournament(call, callback){          //TODO: Concurrency
+
+    const username = call.request.username;
+
+    try {
+        
+        const player = await TournamentPlayers.findOne({where: {username: username}});
+
+        await player.update({status: 'in lobby'});
+
+        const allPlayers = await TournamentPlayers.findAll({where: {tournID: player.tournID}});
+
+        var finished = false;
+        var victory = false;
+        var playerCount = 0;
+        var statusCount = 0;
+        allPlayers.forEach( player => {
+            playerCount++;
+            if(player.status === 'in lobby'){
+                statusCount++;
+            }
+        });
+
+        if(playerCount === statusCount){
+            finished = true;
+
+            if(playerCount === 2){
+                player.update({round: 'final'});
+            }
+            else if(playerCount === 4){
+                player.update({round: 'semifinal'});
+            }
+            else if(playerCount === 1){
+                victory = true;
+                //endTournament
+            }
+            else{
+                player.update({round: 'normal'});
+            }
+        }
+          
+        callback(null, {success: true, finished: finished, tournID: player.tournID});
+              
+    } 
+    catch (err) {
+        console.log(err);
+        callback(null, {success: false});
+    }
+
+}
+
+
 async function joinTournament(call, callback){          //TODO: Concurrency
 
     const username = call.request.username;
@@ -509,10 +686,6 @@ async function joinTournament(call, callback){          //TODO: Concurrency
         await tour.update({playersJoined: tour.playersJoined+1});
 
         if(tour.playersJoined === maxPlayers){
-            let i;
-            for (i = 0; i < maxPlayers/2; i++) {
-                await createGame(null, 'tournament', tour.tournID);
-            }
             
             await tour.update({status: "full"});
         }
@@ -557,52 +730,70 @@ async function leaveTournament(call, callback){          //TODO: Concurrency
 }
 
 
-async function tournamentMatchmake(call, callback){          //TODO: Concurrency
+async function removePlayerTournament(call, callback){
 
     const username = call.request.username;
-    const tournID = call.request.tournID;
+    //add score if he reached finals or semifinals
 
+    try{
 
-    const t = await sequelize.transaction();
-
-    try {
-
-        const game = await Game.findOne({
-            where: sequelize.and(
-                { tournID: tournID }, 
-                    sequelize.or(
-                        { player1: null },
-                        { player2: null }
-                    )
-            )
-        });
-
-        if(game !== null){
-            if(game.player1 === null){
-                await game.update({player1: username}, { transaction: t })
-            }
-            else{
-                await game.update({player2: username}, { transaction: t })
-            }
-
-            await t.commit();
-
-            const playerNumber = await getPlayerNumber(game.gameID, username);
-            //console.log(playerNumber);
-            callback(null, {success: true, gameID: game.gameID, playerNumber: playerNumber});
-        }
-        else{
-            callback(null, {success: false});
-        }
-              
-    } 
-    catch (err) {
-        await t.rollback();
-        console.log(err);
+        await TournamentPlayers.destroy({where: {username: username}});
+        console.log("User "+username+" removed from Tournament");
+        callback(null, {success: true});
+    }
+    catch(error){
+        console.log(error);
         callback(null, {success: false});
     }
 
 }
+
+// async function tournamentMatchmake(call, callback){          //TODO: Concurrency
+
+//     const username = call.request.username;
+//     const tournID = call.request.tournID;
+
+
+//     const t = await sequelize.transaction();
+
+//     try {
+
+//         const game = await Game.findOne({
+//             where: sequelize.and(
+//                 { tournID: tournID }, 
+//                     sequelize.or(
+//                         { player1: null },
+//                         { player2: null }
+//                     )
+//             )
+//         });
+
+//         if(game !== null){
+//             if(game.player1 === null){
+//                 await game.update({player1: username}, { transaction: t })
+//             }
+//             else{
+//                 await game.update({player2: username}, { transaction: t })
+//             }
+
+//             await t.commit();
+
+//             const playerNumber = await getPlayerNumber(game.gameID, username);
+//             //console.log(playerNumber);
+//             callback(null, {success: true, gameID: game.gameID, playerNumber: playerNumber});
+//         }
+//         else{
+//             callback(null, {success: false});
+//         }
+              
+//     } 
+//     catch (err) {
+//         await t.rollback();
+//         console.log(err);
+//         callback(null, {success: false});
+//     }
+
+// }
 
 
 async function getPlayerNumber(gameID, username){
@@ -722,7 +913,10 @@ server.addService(gameMasterPackage.gameMaster.service,
         "getPlayerStatus": getPlayerStatus,
         "deleteTournament": deleteTournament,
         "leaderboards": leaderboards,
-        "tournamentMatchmake": tournamentMatchmake
+        //"tournamentMatchmake": tournamentMatchmake,
+        "joinGameTournament": joinGameTournament,
+        "continueTournament": continueTournament,
+        "removePlayerTournament": removePlayerTournament
     });
 
     //connect to db

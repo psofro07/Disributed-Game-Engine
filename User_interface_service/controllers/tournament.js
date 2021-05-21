@@ -244,30 +244,118 @@ exports.deleteTournament = (req, res, next) => {
 
 exports.tournamentMatchmake = (req, res, next) => {
     
+    const GET_MESSAGES_INTERVAL = 2000;
     const username = req.session.username;
     const tournID = req.params.tournID;
+    var gameCreator = false;
+    var gameFound = false;
 
-    clientGM.tournamentMatchmake({"tournID": tournID, "username": username}, (err, response) => {
-        if(err) {
-            console.log(err);
+    findGame();
+    
+    function findGame() {
+
+        if(gameCreator === false){
+
+            // Find a game or create one
+            clientGM.joinGameTournament({"gameCreator": gameCreator , "tournID": tournID, "username": username}, (err, response) => {
+
+                if(err){
+                    console.log(err);
+                }
+                else {
+
+                    if( response.gameFound === false && response.success === true ){
+                        console.log("There were no available games so I created one "+username);
+                        gameCreator = true; // true
+                        findGame();
+                    }
+                    else if(response.gameFound === true && response.success === true) {
+                        console.log("User "+username+ " found game! Recieved from server: "+response.gameId);
+                        gameFound = response.gameFound; // true
+                        gameJoined_id = response.gameId;
+                        req.session.play = 'tournament';
+                        req.session.player = 'player2';
+                        req.session.gameID = gameJoined_id;
+                        res.redirect('/game/chess');  
+                    }
+                    else if(response.success === false){
+                        setTimeout(function(){
+                            findGame();
+                        }, 1000);
+                    }
+                }
+        
+            });
         }
-        else {  
-            if(response.success === true){
+        else{
 
-                req.session.player = response.playerNumber;
-                req.session.gameID = response.gameID;
+            // Waiting for a player to join my game.
+            clientGM.joinGameTournament({"gameCreator": gameCreator , "tournID": tournID, "username": username}, (err, response) => {
+                
+                console.log("Waiting for a player to join my game: "+req.session.username);
 
-                setTimeout(function(){
+                if(response.gameFound === false && response.success === true ){
+                    console.log("No one joined my game yet "+username);
+                    setTimeout(() => {findGame();}, GET_MESSAGES_INTERVAL);
+                }
+                else if(response.gameFound === true && response.success === true) {
+
+                    console.log("User "+username+ " found game! Recieved from server: "+response.gameId);
+                    gameFound = response.gameFound; // true
+                    gameJoined_id = response.gameId;
+                    req.session.play = 'tournament';
+                    req.session.player = 'player1';
+                    req.session.gameID = gameJoined_id;
                     res.redirect('/game/chess');
-                }, 1000);
-
-            }
-            else{
-                console.log("Could not join a tournament play");
-                res.redirect('/');
-            }
+                }
+                else if(response.success === false){
+                    setTimeout(function(){
+                        findGame();
+                    }, 1000);
+                }  
+            
+            });    
+            
         }
-    });
+    
+    }
 
 }
-    
+
+
+
+exports.continueTournament = (req, res, next) => {
+
+    const username = req.session.username;
+
+    waitForPlayers();
+
+    function waitForPlayers(){
+
+        clientGM.continueTournament({"username": username}, (err, response) => {
+            if(err){
+                console.log(err)
+            }
+            else{
+
+                if(response.success === true && response.finished === true){
+                    res.redirect('/tournamentMatchmake/'+response.tournID);
+                }
+                else if(response.success === true && response.finished === false){
+                    setTimeout(function(){
+                        console.log('waiting...');
+                        waitForPlayers();
+                    }, 2000);
+                }
+                else{
+                    console.log('Could not continue tournament');
+                }
+
+            }
+        })
+
+    }
+
+
+
+}

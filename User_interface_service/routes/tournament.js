@@ -25,4 +25,6 @@ router.post('/deleteTournament', isValidated && isLoggedIn, tournamentController
 
 router.get('/tournamentMatchmake/:tournID', isValidated && isLoggedIn, tournamentController.tournamentMatchmake);
 
+router.get('/continueTournament', isValidated && isLoggedIn, tournamentController.continueTournament);
+
 module.exports = router;

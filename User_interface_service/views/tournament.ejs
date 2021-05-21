@@ -33,6 +33,7 @@
 <script> 
 
     $(document).ready(function () {
+		var started = false;
 
 		init();
 		setInterval(init, 2000);
@@ -53,11 +54,15 @@
 								
 						}
 						else if(data.tournStatus === 'full'){
+
+							if(!started){
+								setTimeout(function(){
+									window.location = '/tournamentMatchmake/'+data.tournID;
+								}, 2000);
+								started = true;
+							}
+							
 							updateTable("leave", data.tournID);
-							//code before the pause
-							setTimeout(function(){
-								window.location = '/tournamentMatchmake/'+data.tournID;
-							}, 2000);
 							
 						}
 						else{

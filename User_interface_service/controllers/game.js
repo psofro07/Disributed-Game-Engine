@@ -140,8 +140,15 @@ exports.receiveMove = (req, res, next) => {
                             if(response.success === true){
                                 console.log("Move received by Playmaster!");
                                 if(response.state === "checkmate"){
-                                    //console.log(req.session.username);
-                                    sendScore(username, gameID, -1);
+                                    if(req.session.play === 'tournament'){
+                                        sendScore(username, gameID, -1);
+                                        clientGM.removePlayerTournament({"username": req.session.username}, () => {});
+                                        //if the loser is from finals or semifinals add the relevant points for him
+                                    }
+                                    else{
+                                        sendScore(username, gameID, -1);
+                                    }
+                                    
                                 }
                                 if(response.state === "tie"){
                                     sendScore(username, gameID, 0.5);
@@ -166,7 +173,7 @@ exports.receiveMove = (req, res, next) => {
                     else{
                         console.log("GAME REACHED THE END");
                         moveGame(gameID);
-                        return;
+                        res.redirect('/continueTournament');
                     }
                 }
                 
@@ -198,7 +205,15 @@ exports.endGame = (req, res, next) => {
                 if(response.success === true){
                     console.log("Game ended");
                     sendScore(username, gameID, score);
-                    res.json({success: response.success});
+
+                    if(req.session.play = 'tournament'){
+                        //if the winner is from finals show relevant message and save the score
+                        res.json({success: response.success, play: 'tournament'});
+                    }
+                    else{
+                        res.json({success: response.success, play: 'practice'});
+                    }
+                    
                 }
                 else{
                     console.log("Could not end game");

@@ -15,11 +15,11 @@ const tPlayers = sequelize.define('TournamentPlayer', {
         required: true
     },
     round: {
-        type: Sequelize.DataTypes.INTEGER,
-        defaultValue: 1, 
+        type: Sequelize.DataTypes.ENUM('normal', 'final', 'semifinal'),
+        defaultValue: 'normal'
     },
     status: {
-        type: Sequelize.DataTypes.ENUM('won', 'lost', 'in game', 'in lobby'),
+        type: Sequelize.DataTypes.ENUM('in game', 'in lobby'),
         defaultValue: 'in lobby'
     }
 
