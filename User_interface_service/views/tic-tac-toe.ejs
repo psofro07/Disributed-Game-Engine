@@ -90,7 +90,7 @@
         console.log("HELLO HandlePlayerChange");
         statusDisplay.innerHTML = currentPlayerTurn(); 
 
-        if(serverTurn !== mycolor ){    //&& serverTurn != 'e'
+        if(serverTurn !== mycolor && serverTurn != 'e'){    //&& serverTurn != 'e'
 
             $.ajax({
                 url: "/game/receiveMove", 
@@ -183,6 +183,7 @@
         }
 
         if (roundWon) {
+            serverTurn = 'e';
             if(typeof(clickedCellIndex) !== 'undefined'){
                 $.ajax({
 					url: "/game/endGame", 
@@ -209,23 +210,13 @@
             //statusDisplay.innerHTML = winningMessage();
             //winner = serverTurn === "X" ? "O" : "X";
 
-            // if(winner === mycolor){
-            //     console.log("I won");
-            //     //$('#winStatus').html('<h1 class="gameWon">You won!</h1>');
-
-            // }
-            // else {
-            //     console.log("I lost");
-            //     //$('#winStatus').html('<h1 class="gameLost">You lost!</h1>');
-
-            // }
-
             gameActive = false;
             //return;
+            sleep(1000);
         }
         else if(roundDraw) {
             if(typeof(clickedCellIndex) !== 'undefined'){
-                
+
                 $.ajax({
 					url: "/game/endGame", 
 					method: "POST",
@@ -249,15 +240,11 @@
             }
             
             //statusDisplay.innerHTML = drawMessage();
-
-            // $('#winStatus').html('<h1 class="gameTie">It is a tie!</h1>');
-            // $('#endButton').html('<button id="homeButton" class="button">Home</button>');
-            // $("#homeButton").onclick = () => {
-            //     document.location.href="/";
-            // };
              gameActive = false;
             // return;
         }
+
+
 
     }
 
@@ -322,51 +309,13 @@
 		return res.redirect("/");
 	});
 
-    function sendWin() {
+    function sleep(miliseconds) {
+        var currentTime = new Date().getTime();
 
-        $.ajax({
-            url: "/game/endGame", 
-            method: "POST",
-            data: {state: "checkmate", score: 1},
-            success: (data) => {
-                // //console.log(data);
-                if (data.success === true) {
-                    console.log("I won!");
-                    console.log("Sending ending move");
-                }
-                else {
-                    console.log("ERROR in endgame: did not send win!");
-                }
-            
-            }
-        });
-    }
+        while (currentTime + miliseconds >= new Date().getTime()) {
+        }
+}
 
-    function getLoss() {
-
-        $.ajax({
-            url: "/game/receiveMove", 
-            method: "POST",
-            data: {},
-            success: (data) => {
-                //console.log(data);
-                if (data.success === true) {
-                    console.log("Recieved loss");				
-                }
-                else {
-                    console.log("ERROR in endgame: did not get loss!");
-                }
-            }
-        });
-    }
-
-    function closeGame() {
-        gameActive = false;
-        $('#endButton').html('<button id="homeButton" class="button">Home</button>');
-        $("#homeButton").onclick = () => {
-            document.location.href="/";
-        };
-    }
 
 
 </script>
