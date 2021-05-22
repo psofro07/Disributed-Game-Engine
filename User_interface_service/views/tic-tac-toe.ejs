@@ -46,6 +46,8 @@
 	var serverTurn = 'X';
     var gameEnded = false;
     var winner;
+    var roundDraw;
+    var roundWon;
     console.log("INTIT "+mycolor+"  "+serverTurn);
 
 
@@ -82,22 +84,24 @@
         $('#'+clickedCellIndex).html(serverTurn);
 
         serverTurn = serverTurn === "X" ? "O" : "X";
+        statusDisplay.innerHTML = currentPlayerTurn();
     }
 
 
     function handlePlayerChange() {
 
         console.log("HELLO HandlePlayerChange");
-        statusDisplay.innerHTML = currentPlayerTurn(); 
+        //statusDisplay.innerHTML = currentPlayerTurn(); 
 
         if(serverTurn !== mycolor && serverTurn != 'e'){    //&& serverTurn != 'e'
+
+            showEndMessages();
 
             $.ajax({
                 url: "/game/receiveMove", 
                 method: "POST",
                 data: {},
                 success: (data) => {
-                    //console.log(data);
                     if (data.success === true) {
                         handleCellPlayed(data.source, data.target);
                         handleResultValidation();
@@ -107,28 +111,26 @@
                         }
                         else if(data.state === "checkmate"){
                             console.log("CHECKMATE MY MAN!");
+                            statusDisplay.innerHTML = "";
 							$('#winStatus').html('<h1 class="gameLost">You lost!</h1>');
 							$('#endButton').html('<button id="homeButton" class="button">Home</button>');
 							$("#homeButton").onclick = () => {
         						document.location.href="/";
     						};
-
 							serverTurn = 'e';
                         }
                         else{
+                            statusDisplay.innerHTML = ""
                             $('#winStatus').html('<h1 class="gameTie">It is a tie!</h1>');
 							$('#endButton').html('<button id="homeButton" class="button">Home</button>');
 							$("#homeButton").onclick = () => {
         						document.location.href="/";
-    						};
-							
-                        }
-             				
+    						};	
+                        }	
                     }
                     else {
                         console.log("ERROR: Something went wrong!");
                     }
-                
                 }
             });
         }
@@ -164,8 +166,8 @@
             });
         }
 
-        let roundWon = false;
-        let roundDraw = !gameState.includes("");
+        roundWon = false;
+        roundDraw = !gameState.includes("");
 
         for (let i = 0; i <= 7; i++) {
             const winCondition = winningConditions[i];
@@ -183,6 +185,7 @@
         }
 
         if (roundWon) {
+
             serverTurn = 'e';
             if(typeof(clickedCellIndex) !== 'undefined'){
                 $.ajax({
@@ -193,11 +196,6 @@
 						// //console.log(data);
 						if (data.success === true) {
 							console.log("I won!");
-							$('#winStatus').html('<h1 class="gameWon">You won!</h1>');
-							$('#endButton').html('<button id="homeButton" class="button">Home</button>');
-							$("#homeButton").onclick = () => {
-								document.location.href="/";
-							};
 						}
 						else {
 							console.log("ERROR: Something went wrong!");
@@ -206,15 +204,12 @@
 					}
         		});
             }
-            
-            //statusDisplay.innerHTML = winningMessage();
-            //winner = serverTurn === "X" ? "O" : "X";
 
             gameActive = false;
-            //return;
-            sleep(1000);
+
         }
         else if(roundDraw) {
+
             if(typeof(clickedCellIndex) !== 'undefined'){
 
                 $.ajax({
@@ -222,29 +217,18 @@
 					method: "POST",
 					data: {state: "tie", score: 0.5},
 					success: (data) => {
-						// //console.log(data);
 						if (data.success === true) {
-							console.log("ITS A TIE");
-							$('#winStatus').html('<h1 class="gameWon">It is a tie!</h1>');
-							$('#endButton').html('<button id="homeButton" class="button">Home</button>');
-							$("#homeButton").onclick = () => {
-								document.location.href="/";
-							};		
+							console.log("ITS A TIE");	
 						}
 						else {
 							console.log("ERROR: Something went wrong!");
 						}
-					
 					}
         		});
             }
-            
-            //statusDisplay.innerHTML = drawMessage();
-             gameActive = false;
-            // return;
+
+            gameActive = false;
         }
-
-
 
     }
 
@@ -274,11 +258,36 @@
             else{
                 serverTurn = 'X';
             }
-
             handleResultValidation(clickedCellIndex);
-
         }
   
+    }
+
+
+    function showEndMessages(){
+        if(roundWon){
+            statusDisplay.innerHTML = ""
+            $('#winStatus').html('<h1 class="gameWon">You won!</h1>');
+            $('#endButton').html('<button id="homeButton" class="button">Home</button>');
+            $("#homeButton").onclick = () => {
+                document.location.href="/";
+            };
+            sleep(1000);
+        }
+        else if(roundDraw){
+            statusDisplay.innerHTML = ""
+            $('#winStatus').html('<h1 class="gameWon">It is a tie!</h1>');
+            $('#endButton').html('<button id="homeButton" class="button">Home</button>');
+            $("#homeButton").onclick = () => {
+                document.location.href="/";
+            };
+            sleep(1000);
+        }
+    }
+
+    function sleep(miliseconds) {
+        var currentTime = new Date().getTime();
+        while (currentTime + miliseconds >= new Date().getTime()) {}
     }
 
 
@@ -306,16 +315,7 @@
 
     $(document).on('click', '#homeButton', function(){ 
 		document.location.href="/";
-		return res.redirect("/");
 	});
-
-    function sleep(miliseconds) {
-        var currentTime = new Date().getTime();
-
-        while (currentTime + miliseconds >= new Date().getTime()) {
-        }
-}
-
 
 
 </script>
