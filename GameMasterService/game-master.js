@@ -138,7 +138,7 @@ async function saveScore(call, callback){
         console.log(error);
         callback(null, {success: false});
     }
-    
+
 }
 
 

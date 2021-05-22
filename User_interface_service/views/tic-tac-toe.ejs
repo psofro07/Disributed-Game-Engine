@@ -45,7 +45,7 @@
     var mycolor = '<%= mycolor %>';
 	var serverTurn = 'X';
     var gameEnded = false;
-    var endRounds = 0;
+    var winner;
     console.log("INTIT "+mycolor+"  "+serverTurn);
 
 
@@ -99,17 +99,31 @@
                 success: (data) => {
                     //console.log(data);
                     if (data.success === true) {
+                        handleCellPlayed(data.source, data.target);
+                        handleResultValidation();
 
-                        if (gameEnded === false){
+                        if(data.state === "playing"){
                             console.log("Source: "+data.source+ "  Target: "+data.target);
-                            handleCellPlayed(data.source, data.target);
+                        }
+                        else if(data.state === "checkmate"){
+                            console.log("CHECKMATE MY MAN!");
+							$('#winStatus').html('<h1 class="gameLost">You lost!</h1>');
+							$('#endButton').html('<button id="homeButton" class="button">Home</button>');
+							$("#homeButton").onclick = () => {
+        						document.location.href="/";
+    						};
 
-                            handleResultValidation();
+							serverTurn = 'e';
                         }
                         else{
-                            closeGame();
-                            return;
-                        }               				
+                            $('#winStatus').html('<h1 class="gameTie">It is a tie!</h1>');
+							$('#endButton').html('<button id="homeButton" class="button">Home</button>');
+							$("#homeButton").onclick = () => {
+        						document.location.href="/";
+    						};
+							
+                        }
+             				
                     }
                     else {
                         console.log("ERROR: Something went wrong!");
@@ -122,10 +136,36 @@
     }
 
 
-    function handleResultValidation() {
+    function handleResultValidation(clickedCellIndex) {
         console.log("HELLO handleResultValidation");
 
+
+        if(typeof(clickedCellIndex) !== 'undefined'){
+            $.ajax({
+                url: "/game/sendMove", 
+                method: "POST",
+                data: {mycolor: mycolor, source: "empty", target: clickedCellIndex},
+                success: (data) => {
+                    //console.log(data);
+                    if (data === true) {
+                        if(mycolor === 'X'){
+                            serverTurn = 'O';
+                        }
+                        else{
+                            serverTurn = 'X';
+                        }
+                        handlePlayerChange();  
+                    }
+                    else {
+                        console.log("ERROR: Something went wrong!");
+                    }
+                
+                }
+            });
+        }
+
         let roundWon = false;
+        let roundDraw = !gameState.includes("");
 
         for (let i = 0; i <= 7; i++) {
             const winCondition = winningConditions[i];
@@ -143,34 +183,82 @@
         }
 
         if (roundWon) {
+            if(typeof(clickedCellIndex) !== 'undefined'){
+                $.ajax({
+					url: "/game/endGame", 
+					method: "POST",
+					data: {state: "checkmate", score: 1},
+					success: (data) => {
+						// //console.log(data);
+						if (data.success === true) {
+							console.log("I won!");
+							$('#winStatus').html('<h1 class="gameWon">You won!</h1>');
+							$('#endButton').html('<button id="homeButton" class="button">Home</button>');
+							$("#homeButton").onclick = () => {
+								document.location.href="/";
+							};
+						}
+						else {
+							console.log("ERROR: Something went wrong!");
+						}
+					
+					}
+        		});
+            }
+            
             //statusDisplay.innerHTML = winningMessage();
-            
+            //winner = serverTurn === "X" ? "O" : "X";
 
-            if(serverTurn === mycolor){
-                $('#winStatus').html('<h1 class="gameWon">You won!</h1>');
+            // if(winner === mycolor){
+            //     console.log("I won");
+            //     //$('#winStatus').html('<h1 class="gameWon">You won!</h1>');
 
-            }
-            else {
-                $('#winStatus').html('<h1 class="gameLost">You lost!</h1>');
+            // }
+            // else {
+            //     console.log("I lost");
+            //     //$('#winStatus').html('<h1 class="gameLost">You lost!</h1>');
 
-            }
+            // }
 
-            
-            
             gameActive = false;
             //return;
         }
-
-        let roundDraw = !gameState.includes("");
-
-        if (roundDraw) {
+        else if(roundDraw) {
+            if(typeof(clickedCellIndex) !== 'undefined'){
+                
+                $.ajax({
+					url: "/game/endGame", 
+					method: "POST",
+					data: {state: "tie", score: 0.5},
+					success: (data) => {
+						// //console.log(data);
+						if (data.success === true) {
+							console.log("ITS A TIE");
+							$('#winStatus').html('<h1 class="gameWon">It is a tie!</h1>');
+							$('#endButton').html('<button id="homeButton" class="button">Home</button>');
+							$("#homeButton").onclick = () => {
+								document.location.href="/";
+							};		
+						}
+						else {
+							console.log("ERROR: Something went wrong!");
+						}
+					
+					}
+        		});
+            }
+            
             //statusDisplay.innerHTML = drawMessage();
 
             // $('#winStatus').html('<h1 class="gameTie">It is a tie!</h1>');
-            gameActive = false;
+            // $('#endButton').html('<button id="homeButton" class="button">Home</button>');
+            // $("#homeButton").onclick = () => {
+            //     document.location.href="/";
+            // };
+             gameActive = false;
+            // return;
         }
 
-        handlePlayerChange();
     }
 
 
@@ -191,31 +279,17 @@
 
             console.log(clickedCell + "   " +clickedCellIndex);
 
-            $.ajax({
-                url: "/game/sendMove", 
-                method: "POST",
-                data: {mycolor: mycolor, source: "empty", target: clickedCellIndex},
-                success: (data) => {
-                    //console.log(data);
-                    if (data === true) {
-                        handleCellPlayed(clickedCell, clickedCellIndex);
+            handleCellPlayed(clickedCell, clickedCellIndex);
 
-                        if(mycolor === 'X'){
-                            serverTurn = 'O';
-                        }
-                        else{
-                            serverTurn = 'X';
-                        }
+            if(mycolor === 'X'){
+                serverTurn = 'O';
+            }
+            else{
+                serverTurn = 'X';
+            }
 
-                        handleResultValidation();
- 
-                    }
-                    else {
-                        console.log("ERROR: Something went wrong!");
-                    }
-                
-                }
-            });
+            handleResultValidation(clickedCellIndex);
+
         }
   
     }
