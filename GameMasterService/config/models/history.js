@@ -41,6 +41,15 @@ const game = sequelize.define('GameHistory', {
         type: Sequelize.DataTypes.ENUM('practice', 'tournament'),
         allowNull: false,
         required: true
+    },
+    tournID: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        default: null
+    },
+    round: {
+        type: Sequelize.DataTypes.ENUM('normal', 'final', 'semifinal'),
+        defaultValue: 'normal'
     }
 })
 

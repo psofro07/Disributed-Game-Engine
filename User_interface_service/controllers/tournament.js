@@ -356,6 +356,4 @@ exports.continueTournament = (req, res, next) => {
 
     }
 
-
-
 }

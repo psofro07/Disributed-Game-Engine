@@ -46,6 +46,10 @@ const game = sequelize.define('GameList', {
         type: Sequelize.STRING,
         allowNull: true,
         default: null
+    },
+    round: {
+        type: Sequelize.DataTypes.ENUM('normal', 'final', 'semifinal'),
+        defaultValue: 'normal'
     }
 })
 

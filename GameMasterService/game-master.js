@@ -35,6 +35,7 @@ const Tournament = require('./config/models/tournament');
 
 const TournamentPlayers = require('./config/models/tournamentPlayers');
 const { transaction } = require("./config/connection");
+const score = require("./config/models/score");
 
 const maxPlayers = 4;
 
@@ -217,6 +218,8 @@ async function joinGameTournament (call, callback) {
 
     const t = await sequelize.transaction({isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE});
 
+    const player = await TournamentPlayers.findOne({where: {username: username}});
+
     try{
         if(gameCreator === false){
             
@@ -231,7 +234,7 @@ async function joinGameTournament (call, callback) {
             }
             else {
                 // No games, create one
-                const game = await Game.create({gameID: uuidv4(), player1: username, game: "chess", player1Score: 0, player2Score: 0 , type: "tournament", tournID: tournID}, { transaction: t, lock: t.LOCK  });
+                const game = await Game.create({gameID: uuidv4(), player1: username, game: "chess", player1Score: 0, player2Score: 0 , type: "tournament", tournID: tournID, round: player.round}, { transaction: t, lock: t.LOCK  });
                 console.log("User: " + username + " created game: "+ game.gameID);
                 callback(null, {success: true, gameCreator: true, gameFound: false});
             }    
@@ -357,7 +360,9 @@ async function gameHistory(call, callback) {
                 player1Score: game.player1Score,
                 player2Score: game.player2Score,
                 game: game.game,
-                type: game.type
+                type: game.type,
+                tournID: game.tournID,
+                round: game.round
             }, { transaction: t });
 
             const player1 = game.player1;
@@ -377,6 +382,9 @@ async function gameHistory(call, callback) {
 
             if(type === 'prcatice'){
                 await updateScorePractice(player1, player2, score1, score2);
+            }
+            else{
+                await updateScoreTournament(player1, player2, score1, score2);
             }
 
             await t.commit();
@@ -630,7 +638,6 @@ async function continueTournament(call, callback){          //TODO: Concurrency
         const allPlayers = await TournamentPlayers.findAll({where: {tournID: player.tournID}});
 
         var finished = false;
-        var victory = false;
         var playerCount = 0;
         var statusCount = 0;
         allPlayers.forEach( player => {
@@ -649,19 +656,43 @@ async function continueTournament(call, callback){          //TODO: Concurrency
             else if(playerCount === 4){
                 player.update({round: 'semifinal'});
             }
-            else if(playerCount === 1){
-                victory = true;
-                //endTournament
-            }
-            else{
-                player.update({round: 'normal'});
-            }
         }
           
         callback(null, {success: true, finished: finished, tournID: player.tournID});
               
     } 
     catch (err) {
+        console.log(err);
+        callback(null, {success: false});
+    }
+
+}
+
+
+async function checkTournamentEnd(call, callback){
+    
+    const username = call.request.username;
+    var victory = false;
+
+    try {
+
+        const player = await TournamentPlayers.findOne({where: {username: username}});
+
+        if(player.round === 'final'){
+            victory = true;
+            var score = 25;
+
+            await Tournament.destroy({where: {tournID: player.tournID}});
+
+            await player.destroy();
+        }
+        else{
+            var score = 1;
+        }
+
+        callback(null, {success: true, score: score, victory: victory});
+    } 
+    catch(error){
         console.log(err);
         callback(null, {success: false});
     }
@@ -687,7 +718,20 @@ async function joinTournament(call, callback){          //TODO: Concurrency
 
         if(tour.playersJoined === maxPlayers){
             
+            const players = await TournamentPlayers.findAndCountAll({where: {tournID: tournID}});
+            console
+            if(players.count === 4){
+
+                players.rows.forEach( async player => {
+                    let user = player.username;
+                    await TournamentPlayers.update({round: 'semifinal'}, {where: {username: user}});
+                })
+                
+            }
+
             await tour.update({status: "full"});
+            
+            
         }
           
         callback(null, {success: true});
@@ -737,9 +781,21 @@ async function removePlayerTournament(call, callback){
 
     try{
 
+        const player = await TournamentPlayers.findOne({where: {username: username}});
+
+        if(player.round === 'semifinal'){
+            var score = 15;
+        }
+        else if(player.round === 'final'){
+            var score = 18;
+        }
+        else{
+            var score = -5;
+        }
+
         await TournamentPlayers.destroy({where: {username: username}});
         console.log("User "+username+" removed from Tournament");
-        callback(null, {success: true});
+        callback(null, {success: true, score: score});
     }
     catch(error){
         console.log(error);
@@ -796,23 +852,23 @@ async function removePlayerTournament(call, callback){
 // }
 
 
-async function getPlayerNumber(gameID, username){
+// async function getPlayerNumber(gameID, username){
 
-    try {
-        const game = await Game.findOne({where: {gameID: gameID}});
+//     try {
+//         const game = await Game.findOne({where: {gameID: gameID}});
 
-        if(username === game.player1){
-            return 'player1';
-        }
-        else{
-            return 'player2';
-        }
-    }
-    catch(error) {
-        console.log(error);
-    }
+//         if(username === game.player1){
+//             return 'player1';
+//         }
+//         else{
+//             return 'player2';
+//         }
+//     }
+//     catch(error) {
+//         console.log(error);
+//     }
 
-}
+// }
 
 
 //update the score after each play for both users
@@ -840,6 +896,30 @@ async function updateScorePractice(player1, player2, score1, score2){
         console.log(error);
     }
     
+}
+
+async function updateScoreTournament(player1, player2, score1, score2){
+    try {
+
+        //for player1
+        let player = await PlayerScore.findOne({where: {username: player1}});
+        let score = player.tournamentScore + score1;
+
+        await PlayerScore.update({tournamentScore: score} , {where: {username: player1}});
+        console.log("Updated tournament score for "+player1);
+
+
+        //for player2
+        player = await PlayerScore.findOne({where: {username: player2}});
+        score = player.tournamentScore + score2;
+
+        await PlayerScore.update({tournamentScore: score} , {where: {username: player2}});
+        console.log("Updated tournament score for "+player2);
+
+    }
+    catch(error){
+        console.log(error);
+    }
 }
 
 //remove the players from mathcmaking (after end of a play)
@@ -916,7 +996,8 @@ server.addService(gameMasterPackage.gameMaster.service,
         //"tournamentMatchmake": tournamentMatchmake,
         "joinGameTournament": joinGameTournament,
         "continueTournament": continueTournament,
-        "removePlayerTournament": removePlayerTournament
+        "removePlayerTournament": removePlayerTournament,
+        "checkTournamentEnd": checkTournamentEnd
     });
 
     //connect to db

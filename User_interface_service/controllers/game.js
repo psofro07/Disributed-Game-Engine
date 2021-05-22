@@ -96,11 +96,13 @@ exports.sendMove = (req, res, next) => {
 
                 if(response.success === true){
                     console.log("Move pushed by Playmaster!");
+                    res.send(response.success);
                 }
                 else{
                     console.log("Failed to push move to Playmaster");
+                    sendMove();
                 }
-                res.send(response.success);
+                
             }
 
         });
@@ -141,8 +143,11 @@ exports.receiveMove = (req, res, next) => {
                                 console.log("Move received by Playmaster!");
                                 if(response.state === "checkmate"){
                                     if(req.session.play === 'tournament'){
-                                        sendScore(username, gameID, -1);
-                                        clientGM.removePlayerTournament({"username": req.session.username}, () => {});
+                                        clientGM.removePlayerTournament({"username": req.session.username}, (err, response) => {
+                                            sendScore(username, gameID, response.score);
+                                        });
+                                        
+                                        
                                         //if the loser is from finals or semifinals add the relevant points for him
                                     }
                                     else{
@@ -157,7 +162,7 @@ exports.receiveMove = (req, res, next) => {
                             }
                             else{
                                 console.log("Failed to receive move from Playmaster");
-                                res.send(response.success);
+                                receiveMove();
                             }
                             
                         }
@@ -173,7 +178,6 @@ exports.receiveMove = (req, res, next) => {
                     else{
                         console.log("GAME REACHED THE END");
                         moveGame(gameID);
-                        res.redirect('/continueTournament');
                     }
                 }
                 
@@ -204,13 +208,27 @@ exports.endGame = (req, res, next) => {
 
                 if(response.success === true){
                     console.log("Game ended");
-                    sendScore(username, gameID, score);
+                    
+                    //console.log(req.session.play);
+                    if(req.session.play === 'tournament'){
 
-                    if(req.session.play = 'tournament'){
-                        //if the winner is from finals show relevant message and save the score
-                        res.json({success: response.success, play: 'tournament'});
+                        clientGM.checkTournamentEnd({"username": username}, (err, response) => {
+                            if(response.success === true && response.victory === false){
+                                sendScore(username, gameID, response.score);
+                                res.json({success: response.success, play: 'tournament', finished: false});
+                            }
+                            else if(response.success === true && response.victory === true){
+                                sendScore(username, gameID, response.score);
+                                res.json({success: response.success, play: 'tournament', finished: true});
+                            }
+                            else{
+                                console.log('Could not check tournament end');
+                            }
+                        })
+                        
                     }
                     else{
+                        sendScore(username, gameID, score);
                         res.json({success: response.success, play: 'practice'});
                     }
                     

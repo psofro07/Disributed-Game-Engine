@@ -185,6 +185,7 @@ exports.getPractice = (req, res, next) => {
                         console.log("User "+username+ " found game! Recieved from server: "+ JSON.stringify(response));
                         gameFound = response.gameFound; // true
                         gameJoined_id = response.gameId;
+                        req.session.play = 'practice';
                         req.session.player = 'player2';
                         req.session.gameID = gameJoined_id;
                         res.redirect('/game/chess');
@@ -227,6 +228,7 @@ exports.getPractice = (req, res, next) => {
                     console.log("Game found! Recieved from server: "+ JSON.stringify(response));
                     gameFound = response.gameFound; // true
                     gameJoined_id = response.gameId;
+                    req.session.play = 'practice';
                     req.session.player = 'player1';
                     req.session.gameID = gameJoined_id;
                     res.redirect('/game/chess');
