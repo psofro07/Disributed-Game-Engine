@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 
 const sequelize = require('../connection');
 
-const game = sequelize.define('GameList', {
+const game = sequelize.define('GameHistory', {
     gameID: {
         type: Sequelize.STRING,
         autoIncrement: false,
@@ -11,7 +11,7 @@ const game = sequelize.define('GameList', {
     },
     player1: {
         type: Sequelize.STRING,
-        allowNull: true,
+        allowNull: false,
         required: true
     },
     player2: {

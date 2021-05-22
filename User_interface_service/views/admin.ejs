@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin</title>
+    <link href="../../css/admin.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" 
+    rel="stylesheet" 
+    integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" 
+    crossorigin="anonymous">
+</head>
+
+<%- include('partials/header.ejs') %>
+
+<div id="editStatus"></div>
+<div class="tablePos">
+    <table class="admtable table">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Username</th>
+          <th scope="col">Email</th>
+          <th scope="col">Role</th>
+          <th scope="col">EDIT</th>
+          <th scope="col">DELETE</th>
+        </tr>
+      </thead>
+      
+
+      <tbody id="adminTable">
+          
+
+      </tbody>
+
+  </table>
+</div>
+
+<%- include('partials/footer.ejs') %>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+	  integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+	  crossorigin="anonymous">
+</script>
+<script>
+
+    $(document).ready(function () {
+
+      createTable();
+
+      function createTable() {
+
+        $.ajax({
+          url: "/admin/createTable", 
+          method: "GET",
+          data: {},
+          success: (data) => {
+            console.log(data);
+            if(data.success === true){
+              $('#adminTable').html(data.data);
+            }
+            else{
+              $('#adminTable').html(data);
+            }
+            
+          }
+        });
+
+      }
+
+      function editTable(username, email, role){
+
+        $.ajax({
+          url: "/admin/editTable",
+          method: "POST",
+          data: {username: username, email: email, role: role},
+          success: (data) => {
+            console.log(data);
+            if(data.success === true){
+              $('#editStatus').html('<h2 class="editSucc">Edited Succesfully!</h2>');
+              
+            }
+            else{
+              $('#editStatus').html('<h2 class="editFail">Edit Failed!</h2>');
+            }
+            
+          }
+        });
+
+      }
+
+      //ajax for editing.
+      $(document).on('click','.btn-edit', function () {
+          //alert('hello');
+          var currentTD = $(this).parents('tr').find('td');
+          var rowVal = [];
+          //alert(currentTD);
+
+          if ($(this).html() == 'EDIT') {  
+
+            $.each(currentTD, function () {
+              $(this).prop('contenteditable', true)
+            });
+
+          }else if ($(this).html() == 'SAVE'){
+            $.each(currentTD, function () {
+              $(this).prop('contenteditable', false)
+              rowVal.push($(this).text());
+            });
+
+            //Change data in database
+            $("#editStatus").html("");
+
+            editTable(rowVal[0],rowVal[1],rowVal[2]);
+
+          }
+
+          $(this).html($(this).html() == 'EDIT' ? 'SAVE' : 'EDIT')
+
+      });
+    
+    
+    
+        //ajax for deleting.
+        $(document).on('click', '.btn-delete', function () {
+    
+          var username = $(this).attr('id');
+          //alert(username);
+          $("#editStatus").html("");
+          //$(this).closest('tr').remove();
+
+          $.ajax({
+            url: "/admin/deleteTable", 
+            method: "POST",
+            data: {username: username},
+            success: (data) => {
+
+              if(data.success === true){
+                createTable();
+                $('#editStatus').html('<h2 class="editSucc">Deleted Succesfully!</h2>');
+              }
+              else{
+                $('#editStatus').html('<h2 class="editFail">Delete failed!</h2>');
+              }
+
+            }
+          });
+              
+        });
+
+     });
+    
+</script>

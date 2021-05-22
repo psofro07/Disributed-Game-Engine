@@ -1,0 +1,223 @@
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+	  integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+	  crossorigin="anonymous">
+</script>
+
+<%- include('partials/header.ejs') %>
+
+<div id="editStatus"></div>
+<div class="tablePos">
+    <table class="admtable table">
+		<thead>
+			<tr>
+			<th scope="col">#</th>
+			<th scope="col">Name</th>
+			<th scope="col">Created by</th>
+			<th scope="col">Joined Players</th>
+			<th scope="col">Status</th>
+			<th scope="col">Game type</th>
+			<th scope="col"></th>
+			</tr>
+		</thead>
+		
+
+		<tbody id="tourTable">
+			
+		</tbody>
+
+  </table>
+</div>
+
+<%- include('partials/footer.ejs') %>
+
+<script> 
+
+    $(document).ready(function () {
+		var started = false;
+
+		init();
+		setInterval(init, 2000);
+		
+		function init(){
+			$.ajax({
+				url: "/refreshTournamentList", 
+				method: "GET",
+				data: {},
+				success: (data) => {
+					//console.log(data.status);
+					if(data.role === 'Official'){
+						updateTable('', '');
+					}
+					else{
+						if(data.tournStatus === 'joinable'){
+							updateTable("leave", data.tournID);
+								
+						}
+						else if(data.tournStatus === 'full'){
+
+							if(!started){
+								setTimeout(function(){
+									window.location = '/tournamentMatchmake/'+data.tournID;
+								}, 2000);
+								started = true;
+							}
+							
+							updateTable("leave", data.tournID);
+							
+						}
+						else{
+							updateTable("join", null);
+						}
+					}
+								
+				}
+			});
+		}
+        
+
+        function updateTable(button, tournID) {
+
+            $.ajax({
+                url: "/getTournamentList", 
+                method: "POST",
+                data: {button: button },
+                success: (data) => {
+                    //console.log(data);
+                    $('#tourTable').html(data.data);
+
+					if(button === 'leave'){
+						// $("button#"+tournID).css("display", "none");
+						// alert();
+						
+						$("#tourTable tr").each(function () {
+
+							$('td', this).each(function () {
+								var value = $(this).find("button").attr("id");
+
+								if (value !== tournID) {
+									$("button#"+value).css("display", "none");
+								}
+							})
+
+						})
+					}
+					
+					
+                }
+            });
+
+        }
+
+
+		//ajax for joining tournament.
+        $(document).on('click', '.btn-join', function() {
+			
+
+			if($(this).html() == 'join'){
+				var tournID = this.id;
+
+				$.ajax({
+					url: "/joinTournament", 
+					method: "POST",
+					data: {tournID: tournID},
+					success: (data) => {
+
+						updateTable("leave", tournID);
+
+
+					}
+				});
+
+			}
+			else if($(this).html() == 'leave'){
+
+				var tournID = this.id;
+
+				$.ajax({
+					url: "/leaveTournament", 
+					method: "POST",
+					data: {tournID: tournID},
+					success: (data) => {
+
+						updateTable("join", tournID);
+
+
+					}
+				});
+			}
+		
+		});
+
+		//ajax for deleting a tournament.
+        $(document).on('click', '.btn-delete', function() {
+
+			var tournID = this.id;
+
+			$.ajax({
+				url: "/deleteTournament", 
+				method: "POST",
+				data: {tournID: tournID},
+				success: (data) => {
+					init();
+				}
+			});
+		
+		});
+
+
+
+
+
+
+
+	});
+</script>
+
+    
+
+  
+
+
+<!-- <script>
+
+    $(document).ready( function () {
+        const tournID = ' tournID '
+
+		fillBrackets();
+		setInterval(fillBrackets, 5000);
+
+        function fillBrackets() {
+
+            $.ajax({
+                url: "/tournament/players",
+                method: "POST",
+                data: {tournID: tournID},
+                success: (data) => {
+
+                    //console.log(data);
+                    if(data.success === true){
+						$('#br11').html(data.players.player1);
+						$('#br12').html(data.players.player2);
+						$('#br13').html(data.players.player3);
+						$('#br14').html(data.players.player4);
+						$('#br15').html(data.players.player5);
+						$('#br16').html(data.players.player6);
+						$('#br17').html(data.players.player7);
+						$('#br18').html(data.players.player8);
+						//console.log('yo');
+                    }
+                    else{
+                        console.log("ERROR: Players NOT returned!");
+                    }
+
+                }
+            });
+
+
+        }
+
+
+    });
+
+
+</script> -->

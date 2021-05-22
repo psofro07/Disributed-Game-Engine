@@ -25,7 +25,20 @@ const gameMoveSchema = new mongoose.Schema({
     move_by: {
         type: String,
         default: null
-    }
+    },
+    status: {
+        state: {
+            type: String,
+            enum: ['playing', 'checkmate', 'tie'],
+            default: 'playing',
+            required: true
+        },
+        winner: {
+            type: String,
+            default: null
+        }
+    },
+
 });
 
 

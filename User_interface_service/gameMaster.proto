@@ -6,6 +6,26 @@ service gameMaster {
 
     rpc connectUser(myUser) returns (assignUser);
     rpc joinGame(gameUser) returns (gameUserRDY);
+    rpc saveScore(score) returns (status);
+    rpc gameHistory(init) returns (status);
+    rpc savePlayer(myUser) returns (status);
+    rpc getScores(myUser) returns (scores);
+    rpc getPracticeHistory(myUser) returns(practiceHistory);
+    rpc createTournament(game) returns (newTourn);
+    rpc deleteGame(myUser) returns (status);
+    rpc getOpponent(player) returns(opponent);
+    rpc deletePlayer(myUser) returns (status);
+    rpc joinTournament(joinTour) returns (status);
+    rpc getTournamentList(myUser) returns (tournamentList);
+    rpc leaveTournament(joinTour) returns (status);
+    rpc getPlayerStatus(myUser) returns (playerStatus);
+    rpc deleteTournament(tournament) returns (status);
+    rpc leaderboards(myUser) returns (playerScores);
+    //rpc tournamentMatchmake(joinTour) returns (match);
+    rpc joinGameTournament(playTournament) returns(playTourRDY);
+    rpc continueTournament(myUser) returns (wait);
+    rpc removePlayerTournament(myUser) returns(scoreTour);
+    rpc checkTournamentEnd(myUser) returns(tourEnd);
 }
 
 
@@ -24,6 +44,7 @@ message voidParam {}
 message gameUser {
     string username = 1;
     bool gameCreator = 2;
+    string gameType = 3;
 }
 
 message gameUserRDY {
@@ -62,4 +83,141 @@ message init {
 
 message status {
     bool success = 1;
+}
+
+message score {
+    string username = 1;
+    string gameID = 2;
+    float score = 3;
+}
+
+message scores {
+    bool success = 1;
+    float practiceScore = 2;
+    float tournamentScore = 3;
+}
+
+message practiceHistory {
+    bool success = 1;
+    repeated Game games = 2;
+}
+
+message Game {
+    string gameID = 1;
+    string player1 = 2;
+    string player2 = 3; 
+    float player1Score = 4;
+    float player2Score = 5;
+    string game = 6;
+    string type = 7;
+    string date = 8;
+}
+
+message game {
+    string gameType = 1;
+    string username = 2;
+}
+
+message newTourn {
+    bool success = 1;
+    string tournID = 2;
+    string name = 3;
+}
+
+message tournament {
+    string tournID = 1;
+}
+
+message Players {
+    string player1 = 1;
+    string player2 = 2;
+    string player3 = 3;
+    string player4 = 4;
+    string player5 = 5;
+    string player6 = 6;
+    string player7 = 7;
+    string player8 = 8;
+}
+
+message tournPlayers {
+    Players players = 1;
+    bool success = 2;
+}
+
+message opponent {
+    bool success = 1;
+    string opponentUsername = 2;
+}
+
+message tournamentList {
+    bool success = 1;
+    repeated Tournament tourList = 2;
+}
+
+message Tournament {
+    string tournID = 1;
+    string name = 2;
+    string official = 3;
+    int64 playersJoined = 4;
+    string status = 5;
+    string type = 6;
+}
+
+message joinTour {
+    string tournID = 1;
+    string username = 2;
+}
+
+message playerStatus {
+    bool success = 1;
+    string status = 2;
+    string tournID = 3;
+    string tournStatus = 4;
+}
+
+message playerScores {
+    bool success = 1;
+    repeated Score playerList = 2;
+}
+
+message Score {
+    string username = 1;
+    float practiceScore = 2;
+    float tournamentScore = 3;
+}
+
+message match {
+    bool success = 1;
+    string gameID = 2;
+    string playerNumber = 3;
+}
+
+message playTournament{
+    bool gameCreator = 1;
+    string tournID = 2;
+    string username = 3;
+}
+
+message playTourRDY {
+    bool gameCreator = 1;
+    bool gameFound = 2;
+    string gameId = 3;
+    bool success = 4;
+}
+
+message wait {
+    bool success = 1;
+    bool finished = 2;
+    string tournID = 3;
+}
+
+message scoreTour {
+    bool success = 1;
+    float score = 2;
+}
+
+message tourEnd {
+    bool success = 1;
+    float score = 2;
+    bool victory = 3;
 }

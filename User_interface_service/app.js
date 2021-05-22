@@ -12,6 +12,9 @@ const registerRoutes = require('./routes/register');
 const loginRoutes = require('./routes/login');
 const logoutRoutes = require('./routes/logout');
 const homeRoutes = require('./routes/home');
+const adminRoutes = require('./routes/admin');
+const tournamentRoutes = require('./routes/tournament');
+const leaderboardRoutes = require('./routes/leaderboards');
 
 app.set('view engine', 'ejs');
 app.use(express.static("public"));
@@ -28,6 +31,9 @@ app.use(loginRoutes);
 app.use(logoutRoutes);
 app.use(homeRoutes);
 app.use(registerRoutes);
+app.use(adminRoutes);
+app.use(tournamentRoutes);
+app.use(leaderboardRoutes);
 
 // unchecked
 app.get('/', (req, res) => {
@@ -35,7 +41,7 @@ app.get('/', (req, res) => {
 })
 
 app.get('/ho', (req, res) => {
-  res.render('chess', {myColor: 'w'});
+  res.render('test');
 })
 
 

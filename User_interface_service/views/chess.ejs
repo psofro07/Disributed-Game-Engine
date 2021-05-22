@@ -9,6 +9,7 @@
       href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"
       integrity="sha384-q94+BZtLrkL1/ohfjR8c6L+A6qzNH9R2hBLwyoAfu3i/WCvQjzL2RQJ3uNHDISdU"
       crossorigin="anonymous">
+	<link href="../../css/chess.css" rel="stylesheet">
 
 	<script src="https://code.jquery.com/jquery-3.5.1.min.js"
 	integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
@@ -24,8 +25,27 @@
 </head>
 <body>
 
+	<!-- margin: auto; align-self: center;-->
+	<div id="myBoard" style="width: 600px;"></div>
+	<div id="winStatus"></div>
+	<div id="endButton"></div>
+	<label>Status:</label>
+	<div id="status"></div>
+	<!-- <label>FEN:</label>
+	<div id="fen"></div>
+	<label>PGN:</label>
+	<div id="pgn"></div> -->
+	<% if(mycolor === "w"){ %>
+		<div class="myusername"><%= username %> (white) </div>
+		<div class="opponent"><%= opponent %> (black) </div>
+	<% } %> 
+	<% if(mycolor === "b"){ %>
+		<div class="myusername"><%= username %> (black) </div>
+		<div class="opponent"><%= opponent %> (white) </div>
+	<% } %> 
+	
+	
 
-	<div id="myBoard" style="width: 600px"></div>
 	<script>
 	var board = null
 	var game = new Chess()
@@ -99,7 +119,7 @@
 	function updateStatus () {
 		var status = ''
 		
-		if(serverTurn !== mycolor){
+		if(serverTurn !== mycolor && serverTurn != 'e'){
 
 			$.ajax({
 				url: "/game/receiveMove", 
@@ -111,14 +131,42 @@
 						game.move({from: data.source, to: data.target, promotion: 'q'});
 						board.position(game.fen());
 						console.log("Source: "+data.source+ "  Target: "+data.target);  
+						
+						if(data.state === "playing"){
+							if(mycolor === 'w'){
+								serverTurn = 'w';
+							}
+							else{
+								serverTurn = 'b';
+							}
 
-						if(mycolor === 'w'){
-							serverTurn = 'w';
+							updateStatus();
+						}
+						else if(data.state === "checkmate"){ 
+							console.log("CHECKMATE MY MAN!");
+							$('#winStatus').html('<h1 class="gameLost">You lost!</h1>');
+							$('#endButton').html('<button id="homeButton" class="button">Home</button>');
+							$(document).on('click', '#homeButton', function(){ 
+								document.location.href="/";
+								return res.redirect("/");
+							});
+
+							serverTurn = 'e';
+
+							updateStatus();
 						}
 						else{
-							serverTurn = 'b';
-						}
-						
+							$('#winStatus').html('<h1 class="gameWon">It is a tie!</h1>');
+							$('#endButton').html('<button id="homeButton" class="button">Home</button>');
+							$(document).on('click', '#homeButton', function(){ 
+								document.location.href="/";
+								return res.redirect("/");
+							});
+							
+							serverTurn = 'e';
+
+							updateStatus();
+						}				
 					}
 					else {
 						console.log("ERROR: Something went wrong!");
@@ -128,6 +176,7 @@
         	});
 		}
 
+
 		var moveColor = 'White'
 		if (serverTurn === 'b') {
 			moveColor = 'Black'
@@ -135,12 +184,88 @@
 
 		// checkmate?
 		if (game.in_checkmate()) {
+
+			if(serverTurn != 'e'){
+				$.ajax({
+					url: "/game/endGame", 
+					method: "POST",
+					data: {state: "checkmate", score: 1},
+					success: (data) => {
+						// //console.log(data);
+						if (data.success === true) {
+
+							if(data.play === 'practice'){
+								console.log("I won!");
+								$('#winStatus').html('<h1 class="gameWon">You won!</h1>');
+								$('#endButton').html('<button id="homeButton" class="button">Home</button>');
+								$(document).on('click', '#homeButton', function(){ 
+									document.location.href="/";
+									return res.redirect("/");
+								});
+							}
+							else{
+								if(data.finished === true){
+									$('#winStatus').html('<h1 class="gameWon">You won the tournament! Congratulations.</h1>');
+									$('#endButton').html('<button id="homeButton" class="button">Home</button>');
+									$(document).on('click', '#homeButton', function(){ 
+										document.location.href="/";
+										return res.redirect("/");
+									});
+								}
+								else{
+									//this will be triggered when the first button was clicked
+									$('#winStatus').html('<h1 class="gameWon">You won!</h1>');
+									$('#endButton').html('<button id="homeButton" class="button">Next Match</button>');
+									$(document).on('click', '#homeButton', function(){ 
+										document.location.href="/continueTournament";
+										return res.redirect("/continueTournament");
+									});
+								}
+								
+							}
+							
+						}
+						else {
+							console.log("ERROR: Something went wrong!");
+						}
+					
+					}
+        		});
+			}
+			
+
 			console.log("CHECKMATE");
 			status = 'Game over, ' + moveColor + ' is in checkmate.'
 		}
 
 		// draw?
 		else if (game.in_draw()) {
+
+			if(serverTurn != 'e'){
+				$.ajax({
+					url: "/game/endGame", 
+					method: "POST",
+					data: {state: "tie", score: 0.5},
+					success: (data) => {
+						// //console.log(data);
+						if (data.success === true) {
+							console.log("ITS A TIE");
+							$('#winStatus').html('<h1 class="gameWon">It is a tie!</h1>');
+							$('#endButton').html('<button id="homeButton" class="button">Home</button>');
+							$(document).on('click', '#homeButton', function(){ 
+								document.location.href="/";
+								return res.redirect("/");
+							});	
+						}
+						else {
+							console.log("ERROR: Something went wrong!");
+						}
+					
+					}
+        		});
+			}
+			
+
 			console.log("DRAW");
 			status = 'Game over, drawn position'
 		}
@@ -163,6 +288,8 @@
 	$fen.html(game.fen())
 	$pgn.html(game.pgn())
 	}
+
+	
 
 	var config = {
 		draggable: true,

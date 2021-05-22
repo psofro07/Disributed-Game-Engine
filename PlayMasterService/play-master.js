@@ -82,7 +82,11 @@ function initializeGame(call, callback) {
             source: null,
             target: null
         },
-        move_by: null
+        move_by: null,
+        status: {
+           state: 'playing',
+           winner: null 
+        }
     });
 
 
@@ -106,8 +110,8 @@ async function receiveMove (call, callback) {
 
     var source = null;
     var target = null;
+    var state = "playing";
     let foundGame = false;
-
 
     await GameMove.findOne( {'gameID': gameID},
         (err, gameMove ) => {
@@ -120,16 +124,27 @@ async function receiveMove (call, callback) {
                     foundGame = true;
                     source = gameMove.move.source;
                     target = gameMove.move.target;
+
+                    if (gameMove.status.state === "checkmate"){
+                        state = "checkmate";
+                    }
+                    else if(gameMove.status.state === "tie"){
+                        state = "tie";
+                    }
+                    else {
+                        state = "playing";
+                    }
+
                     console.log("Received move: "+ source +" "+target);             
                 }
             }
         }
     );
-
+    
 
     if(foundGame) {
         console.log("Received move on game:"+gameID);
-        callback(null, {source: source, target: target, success: true });
+        callback(null, {source: source, target: target, success: true, state: state});
     }
     else{
         console.log("Failed to receive move on game:"+gameID);
@@ -145,6 +160,7 @@ async function checkTurn (call, callback) {
 
     let foundGame = false;
     let myturn = false;
+    let state = 'playing';
 
     await GameMove.findOne( {'gameID': gameID},
         (err, gameMove ) => {
@@ -159,6 +175,7 @@ async function checkTurn (call, callback) {
                     }
                     else{
                         myturn = false;
+                        state = gameMove.status.state;
                     }             
                 }     
             }
@@ -168,16 +185,58 @@ async function checkTurn (call, callback) {
 
     if(myturn){
         console.log("Its your turn");
-        callback(null, {success: true});
+        callback(null, {success: true, state: state});
     }
     else if(foundGame) {
         console.log("Not your turn yet ");
-        callback(null, {success: false});
+        callback(null, {success: false, state: state});
     }
     else{
         console.log("Failed to find game: "+gameID);
+        callback(null, {success: false, state: state});
+    }
+}
+
+
+async function gameEnd(call, callback) {
+
+    let username = call.request.username;
+    let gameID = call.request.gameID;
+    let state = call.request.state;
+
+    if(state == "tie"){
+        username = "stalemate";
+    }
+
+    let gameFound = false;
+
+    let myMove = await GameMove.findOneAndUpdate( {'gameID': gameID}, {
+        status: {
+            state: state,
+            winner: username
+        }
+        },
+        (err, gameMove ) => {
+            if(err){
+                console.log(err);
+            }
+            else{
+                gameFound = true;
+                
+            }
+        }
+    );
+
+    if(gameFound) {
+        console.log("Game ended by: "+username);
+        callback(null, {success: true});
+    }
+    else{
+        console.log("Failed to end game: "+gameID);
         callback(null, {success: false});
     }
+
+
 }
 
 
@@ -190,7 +249,8 @@ server.addService(playMasterPackage.playMaster.service,
         "pushMove": pushMove,
         "receiveMove": receiveMove,
         "initializeGame": initializeGame,
-        "checkTurn": checkTurn
+        "checkTurn": checkTurn,
+        "gameEnd": gameEnd
     });
 
 server.bind("play-master:6000", grpc.ServerCredentials.createInsecure());

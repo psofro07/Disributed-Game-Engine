@@ -10,10 +10,11 @@ const sequelize = require('./util/sql_database');
 const User = require('./models/user');
 
 const authRoutes = require('./routes/auth');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
-app.use(bodyParser.json());                            // to support JSON-encoded bodies
+app.use(bodyParser.json());                              // to support JSON-encoded bodies
 //app.use(bodyParser.urlencoded({ extended: true }));    // to support URL-encoded bodies
 
 app.use((req, res, next) => {
@@ -24,6 +25,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/user', authRoutes);
+app.use('/api', adminRoutes);
 
 const port = 4000;
 
