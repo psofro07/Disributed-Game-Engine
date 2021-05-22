@@ -44,6 +44,7 @@ message voidParam {}
 message gameUser {
     string username = 1;
     bool gameCreator = 2;
+    string gameType = 3;
 }
 
 message gameUserRDY {

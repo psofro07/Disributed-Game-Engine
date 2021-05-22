@@ -15,7 +15,33 @@ const gameMasterPackage = grpcObjectGM.gameMasterPackage;
 const client = new playMasterPackage.playMaster("play-master:6000", grpc.credentials.createInsecure());
 const clientGM = new gameMasterPackage.gameMaster("game-master:5000", grpc.credentials.createInsecure());
 
+exports.ticTacToe = (req, res, next) => {
 
+    const gameID = req.session.gameID;
+    const username = req.session.username;
+
+    let mycolor = 'X';
+    if(req.session.player === 'player2'){
+        mycolor = 'O';
+    }
+
+    clientGM.getOpponent({"gameID": gameID, "username": username}, (err, response) => {
+        if(err){
+            console.log(err);
+        }
+        else{
+            if(response.success === true){
+                const opponent = response.opponentUsername;
+                res.render('tic-tac-toe', { mycolor: mycolor, username: username, opponent: opponent}); 
+            }
+            else{
+                console.log("Could not fetch opponent username");
+                res.render('tic-tac-toe', { mycolor: mycolor, username: username, opponent: null}); 
+            }
+        }
+    });
+
+}
 
 exports.chess = (req, res, next) => {
 

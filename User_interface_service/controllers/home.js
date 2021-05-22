@@ -132,6 +132,8 @@ exports.getPractice = (req, res, next) => {
     const GET_MESSAGES_INTERVAL = 2000;
     
     var username = req.session.username;
+    const gameType = req.params.gameType;   // chess or tic-tac-toe
+
     var gameCreator = false;
     var gameFound = false;
     var gameJoined_id = null;
@@ -169,7 +171,7 @@ exports.getPractice = (req, res, next) => {
         if(gameCreator === false){
 
             // Find a game or create one
-            client.joinGame({"username": username, "gameCreator": gameCreator}, (err, response) => {
+            client.joinGame({"username": username, "gameCreator": gameCreator, "gameType": gameType}, (err, response) => {
 
                 if(err){
                     console.log(err);
@@ -188,7 +190,7 @@ exports.getPractice = (req, res, next) => {
                         req.session.play = 'practice';
                         req.session.player = 'player2';
                         req.session.gameID = gameJoined_id;
-                        res.redirect('/game/chess');
+                        res.redirect('/game/'+gameType);
                         
                         
                     }
@@ -199,7 +201,7 @@ exports.getPractice = (req, res, next) => {
         else{
 
             // Waiting for a player to join my game.
-            client.joinGame({"username": username, "gameCreator": gameCreator}, (err, response) => {
+            client.joinGame({"username": username, "gameCreator": gameCreator, "gameType": gameType}, (err, response) => {
                 
                 console.log("Waiting for a player to join my game.");
 
@@ -231,7 +233,7 @@ exports.getPractice = (req, res, next) => {
                     req.session.play = 'practice';
                     req.session.player = 'player1';
                     req.session.gameID = gameJoined_id;
-                    res.redirect('/game/chess');
+                    res.redirect('/game/'+gameType);
                 }  
             
             });    

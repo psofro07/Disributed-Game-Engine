@@ -7,7 +7,7 @@ const isLoggedIn = require('../middleware/isLoggedIn');
 
 router.get('/home', isValidated && isLoggedIn , homeController.getHome);
 
-router.get('/home/practice/chess', isValidated && isLoggedIn, homeController.getPractice);
+router.get('/home/practice/:gameType', isValidated && isLoggedIn, homeController.getPractice);
 
 router.get('/home/practiceHistory', isValidated && isLoggedIn , homeController.practiceHistory);
 

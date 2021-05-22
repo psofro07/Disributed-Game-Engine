@@ -7,6 +7,8 @@ const isLoggedIn = require('../middleware/isLoggedIn');
 
 router.get('/game/chess', isValidated && isLoggedIn , gameController.chess);
 
+router.get('/game/tic-tac-toe', isValidated && isLoggedIn , gameController.ticTacToe);
+
 router.post('/game/sendMove', isValidated && isLoggedIn, gameController.sendMove);
 
 router.post('/game/receiveMove', isValidated && isLoggedIn, gameController.receiveMove);

@@ -23,6 +23,8 @@ const Sequelize = require('sequelize');
 
 const sequelize = require('./config/connection');
 
+const { Op } = require("sequelize");
+
 const Game = require('./config/models/game');
 
 const Player = require('./config/models/player');
@@ -140,7 +142,7 @@ async function saveScore(call, callback){
         console.log(error);
         callback(null, {success: false});
     }
-    
+
 }
 
 
@@ -149,6 +151,7 @@ async function joinGame (call, callback) {
 
     var username = call.request.username;
     var gameCreator = call.request.gameCreator;
+    var gameType = call.request.gameType;
 
 
     // If you already created a game
@@ -160,7 +163,7 @@ async function joinGame (call, callback) {
 
             // Join a game                          // TODO insert concurrency
 
-            const game = await Game.findOne({where: { player2: null } });
+            const game = await Game.findOne({where: { [Op.and]: [{player2: null}, {game: gameType}] } });
 
             if(!game){
                 let gameID = await createGame(username, "practice", '');
@@ -181,7 +184,7 @@ async function joinGame (call, callback) {
         else {
 
             // No games, create one
-            let gameID = await createGame(username, "practice", '');
+            let gameID = await createGame(username, "practice", gameType);
     
             console.log("User: " + username + " created game: "+ gameID); 
             callback(null, {gameCreator: true, gameFound: false});
@@ -953,17 +956,9 @@ async function removePlayer(player1) {
 
 
 //create the game if none exists
-async function createGame (username, type, tournID) {
+async function createGame (username, type, gameType) {
 
-    var newGame;
-
-    if(type === 'tournament'){
-        newGame = await Game.create({gameID: uuidv4(), player1: username, game: "chess", player1Score: 0, player2Score: 0 , type: type, tournID: tournID}); 
-    }
-    else{
-        newGame = await Game.create({gameID: uuidv4(), player1: username, game: "chess", player1Score: 0, player2Score: 0 , type: type}); 
-    }
-    
+    const newGame = await Game.create({gameID: uuidv4(), player1: username, game: gameType, player1Score: 0, player2Score: 0 , type: type}); 
         
     console.log("Game created with ID: "+newGame.gameID);
     return newGame.gameID;
