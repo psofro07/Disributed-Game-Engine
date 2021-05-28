@@ -567,6 +567,7 @@ async function createTournament(call, callback){
             tournID: uuidv4(),
             official: username,
             name: tournName,
+            numOfPlayers: numOfPlayers,
             type: gameType
         });
 
@@ -1022,6 +1023,7 @@ server.addService(gameMasterPackage.gameMaster.service,
                 {
                     tournID: uuidv4(),
                     official: 'Thanos',
+                    numOfPlayers: 4,
                     type: 'chess'
                     
             });
@@ -1029,6 +1031,7 @@ server.addService(gameMasterPackage.gameMaster.service,
                 {
                     tournID: uuidv4(),
                     official: 'Thanos',
+                    numOfPlayers: 4,
                     type: 'chess'
             });
         })

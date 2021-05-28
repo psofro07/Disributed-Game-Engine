@@ -19,6 +19,10 @@ const tournament = sequelize.define('Tournament', {
         type: Sequelize.STRING,
         allowNull: false,
     },
+    numOfPlayers: {
+        type: Sequelize.DataTypes.ENUM('4', '8', '16'),
+        allowNull: false
+    },
     playersJoined: {
         type: Sequelize.DataTypes.INTEGER,
         defaultValue: 0
