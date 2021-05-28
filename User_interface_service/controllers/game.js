@@ -261,7 +261,7 @@ exports.endGame = (req, res, next) => {
                 }
                 else{
                     console.log("Could not end game");
-                    res.json({success: response.success});
+                    endGame();
                 }
                 
             }

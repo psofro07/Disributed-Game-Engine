@@ -7,8 +7,8 @@ const isValidated = require('../middleware/isValidated');
 const isLoggedIn = require('../middleware/isLoggedIn');
 
 // ? Add official validation function?
-router.get('/leaderboards', isValidated && isLoggedIn, leaderboardController.leaderboards);
+router.get('/leaderboards/:type', isValidated && isLoggedIn, leaderboardController.leaderboards);
 
-router.get('/getLeaderboards', isValidated && isLoggedIn, leaderboardController.getLeaderboards);
+router.get('/getLeaderboards/:type', isValidated && isLoggedIn, leaderboardController.getLeaderboards);
 
 module.exports = router;
