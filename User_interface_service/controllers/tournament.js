@@ -278,7 +278,16 @@ exports.tournamentMatchmake = (req, res, next) => {
                         req.session.play = 'tournament';
                         req.session.player = 'player2';
                         req.session.gameID = gameJoined_id;
-                        res.redirect('/game/chess');  
+                        if(response.gameType === 'chess'){
+                            res.redirect('/game/chess');  
+                        }
+                        else if(response.gameType === 'tic-tac-toe'){
+                            res.redirect('/game/tic-tac-toe');  
+                        }
+                        else{
+                            console.log('Something went wrong with the game type');
+                        }
+                        
                     }
                     else if(response.success === false){
                         setTimeout(function(){
@@ -308,7 +317,15 @@ exports.tournamentMatchmake = (req, res, next) => {
                     req.session.play = 'tournament';
                     req.session.player = 'player1';
                     req.session.gameID = gameJoined_id;
-                    res.redirect('/game/chess');
+                    if(response.gameType === 'chess'){
+                        res.redirect('/game/chess');  
+                    }
+                    else if(response.gameType === 'tic-tac-toe'){
+                        res.redirect('/game/tic-tac-toe');  
+                    }
+                    else{
+                        console.log('Something went wrong with the game type');
+                    }
                 }
                 else if(response.success === false){
                     setTimeout(function(){

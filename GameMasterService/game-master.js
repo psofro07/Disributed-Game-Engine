@@ -236,7 +236,7 @@ async function joinGameTournament (call, callback) {
                 await TournamentPlayers.update({status: 'in game'}, {where: {username: username}});
                 gameJoined = game.gameID;
                 console.log("User: "+username+ " joined game! "+gameJoined);
-                callback(null, {success: true, gameCreator: false, gameFound: true, gameId: gameJoined});   
+                callback(null, {success: true, gameCreator: false, gameFound: true, gameType: game.game, gameId: gameJoined});   
             }
             else {
                 // No games, create one
@@ -261,7 +261,7 @@ async function joinGameTournament (call, callback) {
                 // Matchmaking complete
                 console.log("User: "+ username +" found a game! "+game.gameID);
                 await TournamentPlayers.update({status: 'in game'}, {where: {username: username}});  
-                callback(null, {success: true, gameCreator: true, gameFound: true, gameId: game.gameID}); 
+                callback(null, {success: true, gameCreator: true, gameFound: true, gameType: game.game, gameId: game.gameID}); 
             }
             
                 
@@ -774,11 +774,11 @@ async function joinTournament(call, callback){          //TODO: Concurrency
 
         await tour.update({playersJoined: tour.playersJoined+1});
 
-        if(tour.playersJoined === maxPlayers){
+        if(tour.playersJoined == tour.numOfPlayers){
             
             const players = await TournamentPlayers.findAndCountAll({where: {tournID: tournID}});
             console
-            if(players.count === 4){
+            if(players.count == tour.numOfPlayers){
 
                 players.rows.forEach( async player => {
                     let user = player.username;
@@ -816,7 +816,7 @@ async function leaveTournament(call, callback){          //TODO: Concurrency
 
         await tour.update({playersJoined: tour.playersJoined-1});
 
-        if(tour.playersJoined !== maxPlayers){
+        if(tour.playersJoined !== tour.numOfPlayers){
             await tour.update({status: "joinable"});
             await Game.destroy({where: {tournID: tournID}});
         }
@@ -1082,6 +1082,13 @@ server.addService(gameMasterPackage.gameMaster.service,
                     official: 'Thanos',
                     numOfPlayers: 4,
                     type: 'chess'
+            });
+            Tournament.create(
+                {
+                    tournID: uuidv4(),
+                    official: 'Thanos',
+                    numOfPlayers: 4,
+                    type: 'tic-tac-toe'
             });
         })
         .then( () => {
