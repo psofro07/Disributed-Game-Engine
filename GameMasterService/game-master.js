@@ -555,12 +555,15 @@ async function getPlayerStatus(call, callback){
 async function createTournament(call, callback){
     const gameType = call.request.gameType;
     const username = call.request.username;
+    const numOfPlayers = parseInt(call.request.numOfPlayers);
+    const tournName = call.request.tournName;
 
     try {
         const newTournament = await Tournament.create(
         {
             tournID: uuidv4(),
             official: username,
+            name: tournName,
             type: gameType
         });
 
@@ -1017,6 +1020,7 @@ server.addService(gameMasterPackage.gameMaster.service,
                     tournID: uuidv4(),
                     official: 'Thanos',
                     type: 'chess'
+                    
             });
             Tournament.create(
                 {

@@ -7,7 +7,7 @@ const isValidated = require('../middleware/isValidated');
 const isLoggedIn = require('../middleware/isLoggedIn');
 
 // ? Add official validation function?
-router.get('/official/:gameType', isValidated && isLoggedIn, tournamentController.createTournament);
+router.post('/official/createTournament', isValidated && isLoggedIn, tournamentController.createTournament);
 
 router.get('/tournamentList', isValidated && isLoggedIn, tournamentController.tournamentList);
 

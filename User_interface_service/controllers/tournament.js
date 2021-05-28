@@ -16,10 +16,12 @@ const clientGM = new gameMasterPackage.gameMaster("game-master:5000", grpc.crede
 
 exports.createTournament = (req, res, next) => {
 
-    const gameType = req.params.gameType;
+    const gameType = req.body.gameType;
+    const numOfPlayers = req.body.numOfPlayers;
+    const tournName  = req.body.tournName;
     const username = req.session.username;
 
-    clientGM.createTournament({"gameType": "chess", "username": username}, (err, response) => {
+    clientGM.createTournament({"gameType": gameType, "username": username, "numOfPlayers": numOfPlayers, "tournName": tournName}, (err, response) => {
         if(err) {
             console.log(err);
         }

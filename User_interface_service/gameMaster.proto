@@ -116,6 +116,8 @@ message Game {
 message game {
     string gameType = 1;
     string username = 2;
+    string numOfPlayers = 3;
+    string tournName = 4;
 }
 
 message newTourn {
