@@ -7,20 +7,22 @@
 
 <div id="editStatus"></div>
 <div class="tablePos">
-    <table class="admtable table">
+    <table class="admtable table" id="leaderboardsTable">
 		<thead>
 			<tr>
-			<th scope="col">#</th>
-			<th scope="col">Username</th>
-			<th scope="col">Practice Score by</th>
-			<th scope="col">Tournament score</th>
+                <th scope="col">#</th>
+                <th scope="col">Username</th>
+                <th scope="col"><%- type %> Score</th>
 			</tr>
 		</thead>
 		
+        
 
-		<tbody id="leadTable">
+        <tbody id="leadTable">
 			
-		</tbody>
+        </tbody>
+
+		
 
   </table>
 </div>
@@ -30,6 +32,7 @@
 <script> 
 
     $(document).ready(function () {
+        var type = '<%= type %>';
 
 		updateTable();
 		setInterval(updateTable, 2000);
@@ -37,16 +40,40 @@
         function updateTable() {
 
             $.ajax({
-                url: "/getLeaderboards", 
+                url: "/getLeaderboards/"+type, 
                 method: "GET",
                 data: {},
                 success: (data) => {
                     //console.log(data);
                     $('#leadTable').html(data.data);
+                    sortTable();
+
 					
                 }
             });
 
+        }
+
+        function sortTable() {
+            var $tbody = $('table tbody');
+            $tbody.find('tr').sort(function(a,b){ 
+                var tda = $(a).find('td:eq(1)').text(); // can replace 1 with the column you want to sort on
+                var tdb = $(b).find('td:eq(1)').text(); // this will sort on the second column
+                        // if a < b return 1
+                return tda < tdb ? 1 
+                    // else if a > b return -1
+                    : tda > tdb ? -1 
+                    // else they are equal - return 0    
+                    : 0;           
+            }).appendTo($tbody);
+
+            var i = 1;
+            $tbody.find('tr').each(function() {
+                var $ths = $(this).find('th');
+
+                $ths.eq(0).replaceWith('<th scope="row">'+i+'</th>');
+                i++;
+            });
         }
 
 

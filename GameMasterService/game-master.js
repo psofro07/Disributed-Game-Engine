@@ -383,11 +383,14 @@ async function gameHistory(call, callback) {
             //remove players from matchmaking list
             await removePlayers(gameID, player1, player2);
 
-            if(type === 'prcatice'){
+            if(type === 'practice'){
                 await updateScorePractice(player1, player2, score1, score2);
             }
-            else{
+            else if(type === 'tournament'){
                 await updateScoreTournament(player1, player2, score1, score2);
+            }
+            else{
+                console.log('Something wrong on the type of play');
             }
 
             await t.commit();

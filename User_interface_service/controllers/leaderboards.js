@@ -17,6 +17,8 @@ const clientGM = new gameMasterPackage.gameMaster("game-master:5000", grpc.crede
 
 exports.getLeaderboards = (req, res, next) => {
 
+    var type = req.params.type;
+
     clientGM.leaderboards({}, (err, response) => {
         if(err) {
             console.log(err);
@@ -29,25 +31,44 @@ exports.getLeaderboards = (req, res, next) => {
                     //console.log(response.tourList);
                     let i = 1;
                     var myRow = "";
-                    
-                    response.playerList.forEach( player => {
-                        let username = player.username;
-                        let practiceScore = player.practiceScore;
-                        let tournamentScore = player.tournamentScore;
 
-                        myRow = myRow.concat(
-                            '<tr>'+
-                                '<th scope="row">'+i+'</th>'+
-                                '<td>'+username+'</td>'+
-                                '<td>'+practiceScore+'</td>'+
-                                '<td>'+tournamentScore+'</td>'+
-                            '</tr>');
-                        i++;
-                        
-                    })
+                    if(type === 'Practice'){
+                        response.playerList.forEach( player => {
+                            let username = player.username;
+                            let practiceScore = player.practiceScore;
+    
+                            myRow = myRow.concat(
+                                '<tr>'+
+                                    '<th scope="row">'+i+'</th>'+
+                                    '<td>'+username+'</td>'+
+                                    '<td>'+practiceScore+'</td>'+
+                                '</tr>');
+                            i++;
+                            
+                        })
+                    }
+                    else if(type === 'Tournament'){
+                        response.playerList.forEach( player => {
+                            let username = player.username;
+                            let tournamentScore = player.tournamentScore;
+    
+                            myRow = myRow.concat(
+                                '<tr>'+
+                                    '<th scope="row">'+i+'</th>'+
+                                    '<td>'+username+'</td>'+
+                                    '<td>'+tournamentScore+'</td>'+
+                                '</tr>');
+                            i++;
+                            
+                        })
+                    }
+                    else{
+                        console.log('Something wrong with url parameter');
+                    }
+                    
 
                 
-                res.json({success: true, data: myRow});
+                    res.json({success: true, data: myRow});
 
                 } 
                 else{   
@@ -72,9 +93,12 @@ exports.leaderboards = (req, res, next) => {
     const username = req.session.username;
     const practiceScore = req.session.practiceScore;
     const tournamentScore = req.session.tournamentScore;
+    const type = req.params.type;
 
-    res.render('leaderboards', { role: role, username: username, practiceScore: practiceScore, tournamentScore: tournamentScore });
+    res.render('leaderboards', { role: role, username: username, practiceScore: practiceScore, tournamentScore: tournamentScore, type: type });
 
 }
+
+
 
 

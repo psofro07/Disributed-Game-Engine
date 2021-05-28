@@ -82,6 +82,18 @@ exports.getPracticeHistory = async (req, res, next) => {
                     let player2 = game.player2;
                     let player1Score = game.player1Score;
                     let player2Score = game.player2Score;
+                    if(player1Score === 1){
+                        player1Score = 'Won';
+                        player2Score = 'Lost';
+                    }
+                    else if (player1Score === 0.5){
+                        player1Score = 'Tie';
+                        player2Score = 'Tie';
+                    }
+                    else{
+                        player1Score = 'Lost';
+                        player2Score = 'Won';
+                    }
                     let Game = game.game;
                     let type = game.type;
                     let date = game.date;
