@@ -36,6 +36,9 @@ const GameHistory = require('./config/models/history');
 const Tournament = require('./config/models/tournament');
 
 const TournamentPlayers = require('./config/models/tournamentPlayers');
+
+const TournamentHistory = require('./config/models/tournamentHistory');
+
 const { transaction } = require("./config/connection");
 const score = require("./config/models/score");
 
@@ -635,6 +638,38 @@ async function getTournamentList(call, callback){
 }
 
 
+async function getTournamentHistory(call, callback){
+
+    try{
+        const games = await GameHistory.findAll({where: {type: "tournament"}});
+         
+        var gameList = [];
+        for (const game of games) {
+            var name = await TournamentHistory.findOne({where: {tournID: game.tournID}});
+
+            gameList.push({
+                gameID: game.gameID,
+                player1: game.player1,
+                player2: game.player2,
+                player1Score: game.player1Score,
+                player2Score: game.player2Score,
+                game: game.game,
+                type: game.type,
+                name: name.name,
+                round: game.round,
+                date: game.createdAt
+            })
+        }
+        
+        callback(null, {success: true, games: gameList});
+    }
+    catch(error){
+        console.log(error);
+        callback(null, {success: false});
+    }
+ }
+
+
 async function continueTournament(call, callback){          //TODO: Concurrency
 
     const username = call.request.username;
@@ -692,7 +727,20 @@ async function checkTournamentEnd(call, callback){
             victory = true;
             var score = 25;
 
+            const tour = await Tournament.findOne({where: { tournID: player.tournID } });
+
+            await TournamentHistory.create({
+                tournID: tour.tournID,
+                name: tour.name,
+                official: tour.official,
+                playersJoined: tour.playersJoined,
+                status: 'finished',
+                type: tour.type
+            });
+            console.log('Tournament moved to history with id:'+tour.tournID);
+
             await Tournament.destroy({where: {tournID: player.tournID}});
+            
 
             await player.destroy();
         }
@@ -703,7 +751,7 @@ async function checkTournamentEnd(call, callback){
         callback(null, {success: true, score: score, victory: victory});
     } 
     catch(error){
-        console.log(err);
+        console.log(error);
         callback(null, {success: false});
     }
 
@@ -999,7 +1047,8 @@ server.addService(gameMasterPackage.gameMaster.service,
         "joinGameTournament": joinGameTournament,
         "continueTournament": continueTournament,
         "removePlayerTournament": removePlayerTournament,
-        "checkTournamentEnd": checkTournamentEnd
+        "checkTournamentEnd": checkTournamentEnd,
+        "getTournamentHistory": getTournamentHistory
     });
 
     //connect to db

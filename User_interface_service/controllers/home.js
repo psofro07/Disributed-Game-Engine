@@ -256,3 +256,102 @@ exports.getPractice = (req, res, next) => {
 
     
 }
+
+
+exports.tournamentHistory = (req, res, next) => {
+    
+    const username = req.session.username;
+    const email = req.session.email;
+    const role = req.session.role;
+    const practiceScore = req.session.practiceScore;
+    const tournamentScore = req.session.tournamentScore 
+
+    res.render('tournamentHistory', {email: email, username: username, role: role, practiceScore: practiceScore, tournamentScore: tournamentScore});
+}
+
+
+exports.getTournamentHistory = async (req, res, next) => {
+
+    await client.getTournamentHistory({}, (err, response) => {
+
+        if(err) {
+            console.log(err);
+        }
+        else{
+            if(response.success === true){
+
+                if(response.games){
+                    //console.log(response.games);
+                    let i = 1;
+                    var myRow = "";
+                    
+                    response.games.forEach( game => {
+                        let gameID = game.gameID;
+                        let player1 = game.player1;
+                        let player2 = game.player2;
+                        let player1Score = game.player1Score;
+                        let player2Score = game.player2Score;
+                        if(player1Score === 1){
+                            player1Score = 'Won(+'+game.player1Score+' points)';
+                            if(game.round === 'normal'){
+                                player2Score = 'Lost(-'+game.player2Score+' points)';
+                            }
+                            else{
+                                player2Score = 'Lost(+'+game.player2Score+' points)';
+                            }
+                            
+                        }
+                        else if (player1Score === 0.5){
+                            player1Score = 'Tie';
+                            player2Score = 'Tie';
+                        }
+                        else{
+                            if(game.round === 'normal'){
+                                player1Score = 'Lost(-'+game.player1Score+' points)';
+                            }
+                            else{
+                                player1Score = 'Lost(+'+game.player1Score+' points)';
+                            }
+                            
+                            player2Score = 'Won(+'+game.player2Score+' points)';
+                        }
+                        let Game = game.game;
+                        let type = game.type;
+                        let name = game.name;
+                        let round = game.round;
+                        let date = game.date;
+
+                        myRow = myRow.concat(
+                            '<tr>'+
+                                '<th scope="row">'+i+'</th>'+
+                                '<td>'+gameID+'</td>'+
+                                '<td>'+player1+'</td>'+
+                                '<td>'+player2+'</td>'+
+                                '<td>'+player1Score+'</td>'+
+                                '<td>'+player2Score+'</td>'+
+                                '<td>'+Game+'</td>'+
+                                '<td>'+type+'</td>'+
+                                '<td>'+name+'</td>'+
+                                '<td>'+round+'</td>'+
+                                '<td>'+date+'</td>'+
+                            '</tr>');
+                        i++;
+                    })
+
+                    
+                    res.json({success: true, data: myRow});
+
+                } 
+                else{   
+                    res.json({success: false, data: "No history"});
+                }
+                
+            }
+            else{
+                console.log("Could not get practice history");
+            }
+        }
+    })
+
+
+}

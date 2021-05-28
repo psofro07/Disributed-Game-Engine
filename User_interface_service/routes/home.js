@@ -13,4 +13,8 @@ router.get('/home/practiceHistory', isValidated && isLoggedIn , homeController.p
 
 router.get('/home/getPracticeHistory', isValidated && isLoggedIn , homeController.getPracticeHistory);
 
+router.get('/home/tournamentHistory', isValidated && isLoggedIn , homeController.tournamentHistory);
+
+router.get('/home/getTournamentHistory', isValidated && isLoggedIn , homeController.getTournamentHistory);
+
 module.exports = router;

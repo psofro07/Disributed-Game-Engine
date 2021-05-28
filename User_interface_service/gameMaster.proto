@@ -26,6 +26,7 @@ service gameMaster {
     rpc continueTournament(myUser) returns (wait);
     rpc removePlayerTournament(myUser) returns(scoreTour);
     rpc checkTournamentEnd(myUser) returns(tourEnd);
+    rpc getTournamentHistory(myUser) returns (tournamentHistory);
 }
 
 
@@ -111,6 +112,8 @@ message Game {
     string game = 6;
     string type = 7;
     string date = 8;
+    string name = 9;
+    string round = 10;
 }
 
 message game {
@@ -222,4 +225,9 @@ message tourEnd {
     bool success = 1;
     float score = 2;
     bool victory = 3;
+}
+
+message tournamentHistory {
+    bool success = 1;
+    repeated Game games = 2;
 }
