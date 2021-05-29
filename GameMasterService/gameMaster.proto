@@ -163,9 +163,10 @@ message Tournament {
     string tournID = 1;
     string name = 2;
     string official = 3;
-    int64 playersJoined = 4;
-    string status = 5;
-    string type = 6;
+    string numOfPlayers = 4;
+    int64 playersJoined = 5;
+    string status = 6;
+    string type = 7;
 }
 
 message joinTour {

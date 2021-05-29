@@ -225,6 +225,7 @@ async function joinGameTournament (call, callback) {
     const t = await sequelize.transaction({isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE});
 
     const player = await TournamentPlayers.findOne({where: {username: username}});
+    const tour = await Tournament.findOne({where: {tournID: tournID}});
 
     try{
         if(gameCreator === false){
@@ -240,7 +241,7 @@ async function joinGameTournament (call, callback) {
             }
             else {
                 // No games, create one
-                const game = await Game.create({gameID: uuidv4(), player1: username, game: "chess", player1Score: 0, player2Score: 0 , type: "tournament", tournID: tournID, round: player.round}, { transaction: t, lock: t.LOCK  });
+                const game = await Game.create({gameID: uuidv4(), player1: username, game: tour.type, player1Score: 0, player2Score: 0 , type: "tournament", tournID: tournID, round: player.round}, { transaction: t, lock: t.LOCK  });
                 console.log("User: " + username + " created game: "+ game.gameID);
                 callback(null, {success: true, gameCreator: true, gameFound: false});
             }    
@@ -622,6 +623,7 @@ async function getTournamentList(call, callback){
                 tournID: tour.tournID,
                 name: tour.name,
                 official: tour.official,
+                numOfPlayers: tour.numOfPlayers,
                 playersJoined: tour.playersJoined,
                 status: tour.status,
                 type: tour.type

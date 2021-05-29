@@ -75,6 +75,7 @@ exports.getTournamentList = (req, res, next) => {
                         let name = tour.name;
                         let official = tour.official;
                         let playersJoined = tour.playersJoined;
+                        let numOfPlayers = tour.numOfPlayers;
                         let status = tour.status;
                         let type = tour.type;
 
@@ -85,7 +86,7 @@ exports.getTournamentList = (req, res, next) => {
                                     '<td style="display:none;">'+tournID+'</td>'+
                                     '<td>'+name+'</td>'+
                                     '<td>'+official+'</td>'+
-                                    '<td>'+playersJoined+'/4</td>'+
+                                    '<td>'+playersJoined+'/'+numOfPlayers+'</td>'+
                                     '<td>'+status+'</td>'+
                                     '<td>'+type+'</td>'+
                                     '<td>'+ 
@@ -101,7 +102,7 @@ exports.getTournamentList = (req, res, next) => {
                                     '<td style="display:none;">'+tournID+'</td>'+
                                     '<td>'+name+'</td>'+
                                     '<td>'+official+'</td>'+
-                                    '<td>'+playersJoined+'/4</td>'+
+                                    '<td>'+playersJoined+'/'+numOfPlayers+'</td>'+
                                     '<td>'+status+'</td>'+
                                     '<td>'+type+'</td>'+
                                     '<td>'+ 

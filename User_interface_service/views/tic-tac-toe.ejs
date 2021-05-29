@@ -95,7 +95,14 @@
 
         if(serverTurn !== mycolor && serverTurn != 'e'){    //&& serverTurn != 'e'
 
-            showEndMessages();
+            //showEndMessages();
+            if(roundWon){
+                sleep(1000);
+            }
+            else if(roundDraw){
+                sleep(1000);
+            }
+            
 
             $.ajax({
                 url: "/game/receiveMove", 
@@ -114,18 +121,20 @@
                             statusDisplay.innerHTML = "";
 							$('#winStatus').html('<h1 class="gameLost">You lost!</h1>');
 							$('#endButton').html('<button id="homeButton" class="button">Home</button>');
-							$("#homeButton").onclick = () => {
-        						document.location.href="/";
-    						};
+							$(document).on('click', '#homeButton', function(){ 
+                                document.location.href="/";
+                                return res.redirect("/");
+                            });
 							serverTurn = 'e';
                         }
                         else{
                             statusDisplay.innerHTML = ""
                             $('#winStatus').html('<h1 class="gameTie">It is a tie!</h1>');
 							$('#endButton').html('<button id="homeButton" class="button">Home</button>');
-							$("#homeButton").onclick = () => {
-        						document.location.href="/";
-    						};	
+							$(document).on('click', '#homeButton', function(){ 
+                                document.location.href="/";
+                                return res.redirect("/");
+                            });
                         }	
                     }
                     else {
@@ -195,6 +204,36 @@
 					success: (data) => {
 						// //console.log(data);
 						if (data.success === true) {
+                            if(data.play === 'practice'){
+								console.log("I won!");
+								$('#winStatus').html('<h1 class="gameWon">You won!</h1>');
+								$('#endButton').html('<button id="homeButton" class="button">Home</button>');
+								$(document).on('click', '#homeButton', function(){ 
+									document.location.href="/";
+									return res.redirect("/");
+								});
+							}
+							else{
+								if(data.finished === true){
+									$('#winStatus').html('<h1 class="gameWon">You won the tournament! Congratulations.</h1>');
+									$('#endButton').html('<button id="homeButton" class="button">Home</button>');
+									$(document).on('click', '#homeButton', function(){ 
+										document.location.href="/";
+										return res.redirect("/");
+									});
+								}
+								else{
+									//this will be triggered when the first button was clicked
+									$('#winStatus').html('<h1 class="gameWon">You won!</h1>');
+									$('#endButton').html('<button id="homeButton" class="button">Next Match</button>');
+									$(document).on('click', '#homeButton', function(){ 
+										document.location.href="/continueTournament";
+										return res.redirect("/continueTournament");
+									});
+								}
+								
+							}
+
 							console.log("I won!");
 						}
 						else {
@@ -313,9 +352,9 @@
         handlePlayerChange();
     }
 
-    $(document).on('click', '#homeButton', function(){ 
-		document.location.href="/";
-	});
+    // $(document).on('click', '#homeButton', function(){ 
+	// 	document.location.href="/";
+	// });
 
 
 </script>
