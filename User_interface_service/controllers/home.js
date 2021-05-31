@@ -348,7 +348,7 @@ exports.getTournamentHistory = async (req, res, next) => {
                 
             }
             else{
-                console.log("Could not get practice history");
+                console.log("Could not get tournament history");
             }
         }
     })

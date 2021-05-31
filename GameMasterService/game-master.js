@@ -272,8 +272,11 @@ async function joinGameTournament (call, callback) {
         
     }
     catch(error){
-        await t.rollback();
-        console.log('error from '+username);
+        if(!t.finished){
+            await t.rollback();
+        }
+        
+        console.log(error);
         callback(null, {success: false});
         
     }  
@@ -418,7 +421,9 @@ async function gameHistory(call, callback) {
 async function leaderboards(call, callback){
 
     try{
-        const players = await PlayerScore.findAll();                                
+        const players = await PlayerScore.findAll({ order: [
+            ['tournamentScore', 'DESC'],
+        ]});                                
          
         var playerList = [];
         players.forEach( player => {
@@ -647,8 +652,8 @@ async function getTournamentHistory(call, callback){
          
         var gameList = [];
         for (const game of games) {
-            var name = await TournamentHistory.findOne({where: {tournID: game.tournID}});
-
+            var tour = await TournamentHistory.findOne({where: {tournID: game.tournID}});
+            //console.log('hello:'+tour);
             gameList.push({
                 gameID: game.gameID,
                 player1: game.player1,
@@ -657,7 +662,7 @@ async function getTournamentHistory(call, callback){
                 player2Score: game.player2Score,
                 game: game.game,
                 type: game.type,
-                name: name.name,
+                name: tour.name,
                 round: game.round,
                 date: game.createdAt
             })
@@ -779,12 +784,18 @@ async function joinTournament(call, callback){          //TODO: Concurrency
         if(tour.playersJoined == tour.numOfPlayers){
             
             const players = await TournamentPlayers.findAndCountAll({where: {tournID: tournID}});
-            console
+            
             if(players.count == tour.numOfPlayers){
 
                 players.rows.forEach( async player => {
                     let user = player.username;
-                    await TournamentPlayers.update({round: 'semifinal'}, {where: {username: user}});
+                    if(tour.numOfPlayers > 4){
+                        await TournamentPlayers.update({round: 'normal'}, {where: {username: user}});
+                    }
+                    else{
+                        await TournamentPlayers.update({round: 'semifinal'}, {where: {username: user}});
+                    }
+                    
                 })
                 
             }

@@ -46,7 +46,10 @@
                 success: (data) => {
                     //console.log(data);
                     $('#leadTable').html(data.data);
-                    sortTable();
+                    if(type === 'Practice'){
+                        sortTable();
+                    }
+                   
 
 					
                 }
