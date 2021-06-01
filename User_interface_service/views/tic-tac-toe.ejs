@@ -257,7 +257,14 @@
 					data: {state: "tie", score: 0.5},
 					success: (data) => {
 						if (data.success === true) {
-							console.log("ITS A TIE");	
+							console.log("ITS A TIE");
+                            statusDisplay.innerHTML = ""
+                            $('#winStatus').html('<h1 class="gameTie">It is a tie!</h1>');
+							$('#endButton').html('<button id="homeButton" class="button">Home</button>');
+							$(document).on('click', '#homeButton', function(){ 
+                                document.location.href="/";
+                                return res.redirect("/");
+                            });
 						}
 						else {
 							console.log("ERROR: Something went wrong!");
