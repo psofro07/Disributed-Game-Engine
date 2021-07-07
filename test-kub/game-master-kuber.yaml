@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: game-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: game-master
+  template:
+    metadata:
+      labels:
+        app: game-master
+    spec:
+      containers:
+      - name: game-master
+        image: thepaulbot/game-master:latest
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: MY_POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: GAME_MASTER_SERVICE
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          # - name: GAME_MASTER_SERVICE
+          #   value: "0.0.0.0"
+          - name: POSTGRES_USER
+            valueFrom:
+                configMapKeyRef:
+                  name: myconfigmap
+                  key:  postgres_user
+          - name: POSTGRES_HOST
+            value: "postgres-service.default"
+          - name: POSTGRES_DB_NAME
+            valueFrom:
+                configMapKeyRef:
+                  name: myconfigmap
+                  key:  postgres_db_name
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: postgres_password
+        ports:
+        - containerPort: 5000
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: game-master-service
+spec:
+  selector:
+    app:  game-master
+  type:  ClusterIP
+  ports:
+    - port:  5000
+      targetPort:  5000

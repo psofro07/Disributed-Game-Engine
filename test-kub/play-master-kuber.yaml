@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: play-master
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: play-master
+  template:
+    metadata:
+      labels:
+        app: play-master
+    spec:
+      containers:
+      - name: play-master
+        image: thepaulbot/play-master:latest
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: MY_POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: PLAY_MASTER_SERVICE
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          # - name: PLAY_MASTER_SERVICE
+          #   value: "play-master-service.default"
+          - name: MONGO_DB_NAME
+            valueFrom:
+                configMapKeyRef:
+                  name: myconfigmap
+                  key:  mongo_db_name
+          - name: MONGO_USERNAME
+            valueFrom:
+                configMapKeyRef:
+                  name: myconfigmap
+                  key:  mongo_username
+          - name: MONGO_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mongo-secret
+                key: mongo_password
+          - name: MONGO_HOST
+            value: "mongo-service.default"
+        ports:
+        - containerPort: 6000
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name:  play-master-service
+spec:
+  selector:
+    app:  play-master
+  type:  ClusterIP
+  ports:
+  - protocol:  TCP
+    port:  6000
+    targetPort:  6000
