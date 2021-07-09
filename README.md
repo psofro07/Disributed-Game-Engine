@@ -1,4 +1,4 @@
-#This Project was part of the Distributed Systems course of ECE Technical University of Crete.
+# This Project was part of the Distributed Systems course of ECE Technical University of Crete.
 
 
 There are 2 possible ways of running the distributed game engine application:
@@ -7,7 +7,7 @@ There are 2 possible ways of running the distributed game engine application:
 	   and the kubectl tool.
 	
 
-#DOCKER AND DOCKER-COMPOSE
+# DOCKER AND DOCKER-COMPOSE
 To run the application using this method, you need to be in the /Docker_Compose_implementation directory
 and just use the command: "docker-compose up" which uses the docker-compose.yml configuration file to
 create the services described within it. Once you are done, you can use the "docker-compose down -v"
@@ -15,7 +15,7 @@ command to delete all the containers their associated volumes. The application c
 "localhost:3000".
 
 
-#KUBERNETES WITH MINIKUBE AND KUBECTL
+# KUBERNETES WITH MINIKUBE AND KUBECTL
 To run the application using this method, you need to have a minikube cluster up and running,
 you can do this by executing the command "minikube start". Once everything is configured, head over
 to the /kubernetes_implementation directory and run the command "make", which will create all the
@@ -25,12 +25,12 @@ When you are done you can use the command "make clean" to delete everything, the
 will be deleted by deleting the minikube cluster ("minikube delete").
 
 
-#FUNCTIONALITY THAT WAS REQUESTED BUT NOT IMPLEMENTED:
+# FUNCTIONALITY THAT WAS REQUESTED BUT NOT IMPLEMENTED:
 There is no spectator functionality because the PlayMaster service does not save the board state. Only the latest move made.
 That means that if a player decides to redirect to another page, there is no way of continuing the active game.
 
 
-#NOTES:
+# NOTES:
 An administrator is created during the initialization with the following information:
 Username: Pipis
 Password: 1234
@@ -59,7 +59,7 @@ is still inside for completeness purposes. Finally for the docker-compose method
 included the following services: phpmyadmin, mongo-express and pgAdmin for testing our databases.
 
 
-#Credits for chess and tic-tac-toe js implementation:
+# Credits for chess and tic-tac-toe js implementation:
 https://github.com/jhlywa/chess.js
 https://chessboardjs.com/
 https://dev.to/bornasepic/pure-and-simple-tic-tac-toe-with-javascript-4pgn
