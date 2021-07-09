@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authentication
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app:  authentication
+  template:
+    metadata:
+      labels:
+        app: authentication
+    spec:
+      containers:
+      - name: authentication
+        image: thepaulbot/authentication:latest
+        env:
+          - name: MYSQL_HOST
+            value: "mysql-service.default"
+          - name: MYSQL_USER
+            valueFrom:
+                configMapKeyRef:
+                  name: myconfigmap
+                  key:  mysql_user
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secret
+                key: mysql_password
+          - name: MYSQL_DATABASE
+            valueFrom:
+              configMapKeyRef:
+                name: myconfigmap
+                key: mysql_database
+        ports:
+        - containerPort: 4000
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name:  authentication-service
+spec:
+  selector:
+    app:  authentication
+  type:  ClusterIP
+  ports:
+  - protocol: TCP
+    port:  4000
+    targetPort:  4000
+    #nodePort: 31000

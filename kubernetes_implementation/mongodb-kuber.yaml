@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongo
+        image: mongo
+        volumeMounts:
+          - name: playmaster-data
+            mountPath:  data/db
+        env:
+          - name: MONGO_INITDB_ROOT_USERNAME
+            valueFrom:
+              configMapKeyRef:
+                name: myconfigmap
+                key: mongo_initdb_root_username
+          - name: MONGO_INITDB_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mongo-secret
+                key: mongo_password
+          - name: MONGO_INITDB_DATABASE
+            valueFrom:
+              configMapKeyRef:
+                name: myconfigmap
+                key: mongo_initdb_database
+        ports:
+        - containerPort: 27017
+      restartPolicy: Always
+      volumes:
+        - name: playmaster-data
+          hostPath:
+            path: /playdata
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name:  mongo-service
+spec:
+  selector:
+    app:  mongo
+  type:  ClusterIP
+  ports:
+  - protocol:  TCP
+    port:  27017
+    targetPort:  27017

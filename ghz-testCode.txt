@@ -1,0 +1,31 @@
+Code used for testing our grpc services response times with gHZ.
+
+
+./ghz --insecure \
+  --proto /mnt/dev/disk/by-uuid/F0B2E50CB2E4D85C/Ub_files/Disributed-Game-Engine/User_interface_service/gameMaster.proto \
+  --call gameMasterPackage.gameMaster.getTournamentHistory\
+  -d '{"username":"pavlos"}' \
+  127.0.0.1:5000
+
+
+  ./ghz --insecure \
+  --proto /mnt/dev/disk/by-uuid/F0B2E50CB2E4D85C/Ub_files/Disributed-Game-Engine/User_interface_service/gameMaster.proto \
+  --call gameMasterPackage.gameMaster.createTournament\
+  -d '{"gameType":"chess","username":"alex","numOfPlayers":"8","tournName":"my last tournament"}' \
+  127.0.0.1:5000
+
+
+./ghz --insecure \
+  --proto /mnt/dev/disk/by-uuid/F0B2E50CB2E4D85C/Ub_files/Disributed-Game-Engine/PlayMasterService/playMaster.proto \
+  --call playMasterPackage.playMaster.initializeGame\
+  -d '{"gameID":"pavlos"}' \
+  127.0.0.1:6000
+
+
+  ./ghz --insecure \
+  --proto /mnt/dev/disk/by-uuid/F0B2E50CB2E4D85C/Ub_files/Disributed-Game-Engine/PlayMasterService/playMaster.proto \
+  --call playMasterPackage.playMaster.receiveMove\
+  -d '{"gameID":"pavlos"}' \
+  127.0.0.1:6000
+
+

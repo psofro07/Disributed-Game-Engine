@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: myconfigmap
+data:
+  mongo_database_url: mongodb-service  #Url is the name of the service
+  mysql_user: sifis
+  mysql_database: auth
+  #
+  postgres_user: user
+  postgres_db_name: sql-gm
+  postgres_host: postgres-gamemaster
+  #
+  postgres_db: sql-gm
+  #
+  mongo_username: root
+  mongo_host: mongoDB
+  mongo_db_name: PlayMaster
+  #
+  mongo_initdb_root_username: root
+  mongo_initdb_database: PlayMaster

@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-interface
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-interface
+  template:
+    metadata:
+      labels:
+        app: user-interface
+    spec:
+      containers:
+      - name: user-interface
+        image: thepaulbot/user-interface:latest
+        env:
+          - name: USER_INTERFACE_SERVICE
+            value: "http://user-interface-service.default"
+          - name: AUTH_SERVICE
+            value: "authentication-service.default"
+          - name: GAME_MASTER_SERVICE
+            value: "game-master-service.default"
+          - name: PLAY_MASTER_SERVICE
+            value:  "play-master-service.default"
+        # resources:
+        #   limits:
+        #     memory: "128Mi"
+        #     cpu: "500m"
+        ports:
+        - containerPort: 3000
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-interface-service
+spec:
+  selector:
+    app: user-interface
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+
