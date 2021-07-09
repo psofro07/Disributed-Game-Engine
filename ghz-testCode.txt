@@ -1,3 +1,5 @@
+Code used for testing our grpc services response times with gHZ.
+
 
 ./ghz --insecure \
   --proto /mnt/dev/disk/by-uuid/F0B2E50CB2E4D85C/Ub_files/Disributed-Game-Engine/User_interface_service/gameMaster.proto \

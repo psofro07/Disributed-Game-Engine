@@ -38,6 +38,7 @@ app.use((error, req, res, next) => {
   res.status(status).json({ message: message, data: data });
 });
 
+
 sequelize
   .sync()
   .then( result => {
@@ -52,11 +53,11 @@ sequelize
   .then(user => {
       if (!user) {
         bcrypt
-        .hash('yolo', 12)
+        .hash('1234', 12)
         .then(hashedPass => {
           return User.create({ username: 'Pipis', email: 'pipis@test.com', password: hashedPass, role: 'Admin' });
         })
-        
+         
       }
       return user;
     })

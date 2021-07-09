@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 // ------------------- GRPC --------------------------------------//
-const grpc = require("grpc");
+const grpc = require("@grpc/grpc-js");
 // protoLoader used for compilation of proto file into JS.
 const protoLoader = require("@grpc/proto-loader");
 // Load synchronously.
@@ -1084,7 +1084,7 @@ server.addService(gameMasterPackage.gameMaster.service,
             Tournament.create(
                 {
                     tournID: uuidv4(),
-                    official: 'Thanos',
+                    official: 'alex',
                     numOfPlayers: 4,
                     type: 'chess'
                     
@@ -1092,24 +1092,28 @@ server.addService(gameMasterPackage.gameMaster.service,
             Tournament.create(
                 {
                     tournID: uuidv4(),
-                    official: 'Thanos',
+                    official: 'alex',
                     numOfPlayers: 4,
                     type: 'chess'
             });
             Tournament.create(
                 {
                     tournID: uuidv4(),
-                    official: 'Thanos',
+                    official: 'alex',
                     numOfPlayers: 4,
                     type: 'tic-tac-toe'
             });
         })
         .then( () => {
             
-            server.bind("game-master:5000", grpc.ServerCredentials.createInsecure());
+            var Server = new grpc.Server();
 
-            //start the server
-            server.start();
+            server.bindAsync("game-master:5000", grpc.ServerCredentials.createInsecure(), () => {
+                server.start();
+            });
+
+            //start the server/
+            //server.start();
         })
         .catch(err => {
             console.log(err);

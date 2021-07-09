@@ -111,7 +111,7 @@ services:
       MYSQL_DATABASE: $MYSQL_DATABASE
     networks:
       - net1
-    volumes: 
+    volumes:
       - db-config:/etc/mysql
       - db-data:/var/lib/mysql
       - ./db/backup/files/:/data_backup/data
