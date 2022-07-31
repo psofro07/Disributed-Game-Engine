@@ -58,8 +58,3 @@ images and uploaded them to our own repositories and are pulled from there. The 
 is still inside for completeness purposes. Finally for the docker-compose method we have also
 included the following services: phpmyadmin, mongo-express and pgAdmin for testing our databases.
 
-
-#Credits for chess and tic-tac-toe js implementation:
-https://github.com/jhlywa/chess.js
-https://chessboardjs.com/
-https://dev.to/bornasepic/pure-and-simple-tic-tac-toe-with-javascript-4pgn
