@@ -8,7 +8,7 @@ A distributed game engine for playing multiplayer board games (chess and tic-tac
 # Getting Started
 There are 2 possible ways of running the distributed game engine application:
 
-1. Using minikube to simulate a Kubernetes cluster with one Node (preffered way since it provides fault-tolerance) and the kubectl tool.
+1. Using minikube to simulate a Kubernetes cluster with one Node (prefered way since it provides fault-tolerance) and the kubectl tool.
 2. Using the docker engine and the docker-compose tool.
 
 # Architecture
